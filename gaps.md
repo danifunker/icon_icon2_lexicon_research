@@ -102,7 +102,7 @@ Status as reported on 2026-10-28 (`src/fs/qnx2.rs`). Things already working: det
 | RB-6 | Bitmap cross-check and orphan report, growing into a QNX 2 fsck | FS-5 | open |
 | RB-7 | Hand off QDOS `.pf`/`.ph` image files and `arch` floppies | FS-9 | open |
 | RB-8 | Per-file report of damaged sectors | REL-4 | open |
-| RB-9 | Hard-disk images: a 10 MB single volume, and 64 MB with the partition record and BBT | FS-7, FS-8; needs sample images (PPL-1) | open. Concrete test case: an installed 10 MB disk (icon-emu `disks/lexicon-4.10.01-10mb.img`). RustyBackup currently reads partition type 0x07 as NTFS; it must probe QNX 2 and treat the partition start as 1-based. Extracted from LBA 29, it reads fine |
+| RB-9 | Hard-disk images: a 10 MB single volume, and 64 MB with the partition record and BBT | FS-7, FS-8 | open, handed off: [rustybackup_handoff_hd_emulator.md](rustybackup_handoff_hd_emulator.md) gives the full block-1 layout, test images with SHA-256, and an icon-emu verification recipe. As of 2026-10-28 RB reads type 07 as NTFS and 08/09 as unknown; carved at LBA = start − 1, all partitions read correctly. QNX 2 writes are not supported yet |
 | RB-10 | Test on 640K disks and LEXICON-made disks | needs samples | open |
 | RB-11 | Optionally use a size table (655,360 / 819,200 bytes) as a fallback when the bitmap is damaged | — | open |
 
