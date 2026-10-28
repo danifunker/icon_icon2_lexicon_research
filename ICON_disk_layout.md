@@ -9,6 +9,19 @@ New diagrams built from facts in *The Book of ICON*; they are not copies of the 
 | `1:` | LEXICON hard disk | 10 MB | Holds the whole system and all user files. Paths with no drive prefix mean `1:` ([p24](book_of_icon.md#p24), [p63](book_of_icon.md#p63)) |
 | `2:` | LEXICON floppy drive (or the pedestal drive on a stand-alone ICON) | 640 KB (DS/DD, 96 tpi). 48 tpi disks give 320 KB | After `[1] dinit 2` an empty disk shows only `2:/bitmap` and **1276 free blocks**, which works out to about 512-byte blocks ([p43–44](book_of_icon.md#p43)) |
 
+**ISSSW 3.x/4.x additions** (official manuals; see [manual_notes/](manual_notes/) and [ICON_qnx2_filesystem.md](ICON_qnx2_filesystem.md)):
+
+| Drive | Meaning |
+|---|---|
+| `1:` | Fileserver hard disk: the whole 10 MB disk, or partition 1 of a 64 MB disk |
+| `2:` | Fileserver floppy: 640 KB default (80×2×8×512); 800 KB with 10 sectors per track |
+| `3:` | **Second 32 MB partition** of a 64 MB fileserver. The default search order is `1 3` |
+| `5:` | A solo workstation's own floppy (`/drivers/ws_floppy`) |
+| `8:` | RAM disk (`mount ramdisk 8 s=128k`) |
+| `A:`–`F:` | QDOS DOS drives |
+
+Workstations see the fileserver's drives 1–3 as their own, mounted as `remdisk` at boot. Blocks are **exactly 512 bytes**, and the 1276 free blocks on a 1280-block floppy means 4 blocks of overhead.
+
 A networked ICON has **no disk of its own**. Everything it loads comes from the LEXICON over the network ([p22](book_of_icon.md#p22), [p159](book_of_icon.md#p159)).
 
 ## 2. Root of the LEXICON hard disk
@@ -42,6 +55,29 @@ Sources: root walkthrough [p61–62](book_of_icon.md#p61); directories backed up
 
 - **`/user/demo` vs `/demo`:** the book uses both. `cd /demo` at [p28](book_of_icon.md#p28), but `wmi` later prints `/user/demo` ([p48](book_of_icon.md#p48)). Check this against a real disk image.
 - **`/boot`:** the book names this directory but never says what's in it. See [the boot notes](ICON_boot_and_network.md).
+
+## 2b. Root of an ISSSW 3.00 fileserver (official tree)
+
+"When the system software is installed, the fileserver contains 11 main directories" (System Software Operations Guide p18). `/lib`, `/mathlib`, `/languages`, `/speech`, `/demo` and `/sampler` from the 1.13 book are not in the official 3.00 list.
+
+```mermaid
+graph TD
+    r["/"] --> boot["/boot<br/><i>ws_boot, hd_boot, fs_net_boot</i>"]
+    r --> cmds["/cmds<br/><i>Quantum QNX commands</i>"]
+    r --> util["/util<br/><i>Unisys commands: edit, house,<br/>print, new_user, ...</i>"]
+    r --> ucmds["/user_cmds<br/><i>site-written commands</i>"]
+    r --> config["/config<br/><i>pass, sys.init, net.config,<br/>u_sys.init.&lt;hex node&gt;, print/</i>"]
+    r --> drivers["/drivers<br/><i>ws_floppy, hd, fd, ramdisk</i>"]
+    r --> fonts["/fonts"]
+    r --> icons["/icons"]
+    r --> sys["/sys<br/><i>bootsnd, bootrec, win_mgr,<br/>set_cache, set_rtc, speech, ...</i>"]
+    r --> tmp["/tmp"]
+    r --> user["/user/&lt;login&gt;<br/><i>.login</i>"]
+    r --> spool["/spool<br/><i>parallel, serial</i>"]
+    r --> bitmap["bitmap<br/><i>(file: block allocation map)</i>"]
+```
+
+Reinstalling keeps `/config/pass`, `net.config`, `/user_cmds`, `/config/print` and the `user_*_sys.init` files. Back up `bad_blocks` along with them.
 
 ## 3. The system backup set (`sysback`)
 

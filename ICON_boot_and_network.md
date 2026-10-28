@@ -1,5 +1,22 @@
 # How the ICON Boots Over the Network: What the Book Says
 
+> **Update (2026-10-28): largely answered by the dumped boot ROM and the official Unisys manuals.** The firmware details are in [ICON_firmware.md](ICON_firmware.md) and the manual extracts in [manual_notes/](manual_notes/).
+> - **The ROM runs a self-test, then tries the loaders in a fixed order: floppy → network → hard disk.** Each loader is enabled by a bit in NVRAM word 0. On failure the ROM shows `56`/`57`/`58` and finally `5a` ("no specified loader option has succeeded"), and beeps the code: 8 tones, high nibble first.
+> - **The node ID is in the 32-byte serial EEPROM (NVRAM), not the EPROMs.** The high byte of word 10 is this station's ARCNET ID, which is latched into the COM9026 at reset; the low byte is the boot server's node. `attach_net n= c=` writes it, `detach_net +r` resets it to the factory default **254** (fileservers: **245**), and `nv_config` displays it. The [JE2] "EPROM" claim below is wrong.
+> - **Network boot:** the station sends the boot server a 10-byte `…'seg'<image#>` request. The server replies with numbered `'b'` blocks, each carrying a load address, plus an entry point. The server side is `/sys/bootsnd` + `bootrec`. `/boot` holds `ws_boot`, `hd_boot` and `fs_net_boot`.
+> - **Workstations boot from their *cluster* fileserver** (`c=`), which isn't necessarily node 1. Storage fileservers network-boot too. The role comes from configuration, not jumpers.
+> - **The "weird pattern then numbers"** the book describes is the ROM diagnostics screen; normally it ends with "Diagnostics report complete, loading boot file".
+> - Node ranges: workstations 16–253/255 (not 245), fileservers 1–245, at most 128 nodes per network. "ICONs 16–47" was only a convention.
+> - The §2 sequence diagram below is superseded and kept only for history.
+>
+> **Update (2026-10-14, from web sources; details in [ICON_web_research.md](ICON_web_research.md) §1):**
+> - **Confirmed:** networked ICONs download QNX from the LEXICON into RAM at every power-on. Without a LEXICON they search for it and then sit idle.
+> - **Confirmed:** the LEXICON keeps the station OS image on a **RAM disk, drive 8**.
+> - **Confirmed:** the LEXICON is node 1 and ICONs are nodes 16–47. Paths are written `[node]drive:/path`, so `[1]` means the LEXICON.
+> - **Firmware:** the boot ROMs are a HIGH/LOW EPROM pair. The early version is labelled "5053-1/-2 ISS 2" and a later one "LOGIC 200-503/504-000 Rel. 2.11", with checksums 048C and 2373.
+> - **Still open:** where the node ID is stored. Eckert says the EPROMs; the book lists a 32-byte EEPROM.
+> - **Sequence diagram below:** the ROM → LEXICON → RAM steps in §2 are now confirmed at a high level. The protocol details are still inference.
+
 **Short answer:** *The Book of ICON* has **no description of a boot ROM or of the network boot process**. It is a user's guide. The book gives scattered clues, collected below with page links into [book_of_icon.md](book_of_icon.md) (PDF page − 20 = printed page). Section 2 is clearly marked inference.
 
 ## 1. Evidence in the book
