@@ -19,7 +19,7 @@ Spec: [ICON_qnx2_filesystem.md](ICON_qnx2_filesystem.md).
 | FS-3 | **What are `fspare[6]` (bytes 17–22)?** Is it `fnum_chars_free` + `fseconds` as in `q2files.c`, or spare as the 1987 header says? | The logical file size formula depends on it | Compare 3.00 and 4.x disks. Check against `/lib/fsys.h` on the C Compiler diskette | P1 | partly: `fnum_chars_free` = 0 and the seconds bytes = 0 on every file seen; `fnum_blks` = total − 1. Date words not yet decoded |
 | FS-4 | **Directory header:** is `parent_xtnt` really 16-bit? What does `dir_index` mean, and how is the extended form (bit 15) used? | Needed to walk directories correctly | Dump a root directory and a subdirectory | P1 | mostly: the 4/6-byte header works as specified on all disks. The meaning of `dir_index` is still open |
 | FS-5 | **Bitmap bit order**, and does bit 0 = block 1? | Needed for orphan-block and undelete features. Not needed for plain extraction | Compare with a freshly `dinit`-ed disk, where only the first 4 blocks are used | P2 | partly: 1 bit per block confirmed (200 bytes for 1600 blocks). Bit order still open |
-| FS-6 | **The `/lib/fsys.h`, `io.h`, `dev.h` and `task.h` headers themselves** | Would settle FS-1 to FS-5 and EXE-1 straight from the source | Extract them from the C Compiler Diskette 3.00.00 once a basic reader works | P1 | open |
+| FS-6 | **The `/lib/fsys.h`, `io.h`, `dev.h` and `task.h` headers themselves** | Would settle FS-1 to FS-5 and EXE-1 straight from the source | Extract them from the C Compiler Diskette 3.00.00 once a basic reader works | P1 | found: `/lib/fsys.h`, `task.h`, `io.h`, `dev.h`, `magic.h` and others are on the C Compiler 3.00 diskette. `fsys.h` confirms `xtnt_hdr`, `dir_entry` (with `fspare[6]`) and `dir_xtnt`. Headers not yet transcribed into the spec |
 | FS-7 | **64 MB hard disk layout:** the master partition record (up to 4 entries), the **Bad Block Table** format and the loader area | Without the BBT remap, hard-disk images return garbage in remapped blocks | Needs a 64 MB fileserver hard-disk image (archeobits has imaged server drives; see PPL-1) | P2 | open |
 | FS-8 | **The 10 MB "old" vs "new" format:** 20808 blocks (old) vs 20208 (the 4.x glossaries) | Tells hard-disk images apart | A 10 MB hard-disk image, or the 4.x `dinit` code | P2 | open |
 | FS-9 | **The `arch` multi-volume archive format** | Some floppies may be `arch` volumes, not filesystems | Find an `arch` disk among the images, or create one on an emulator | P3 | open |
@@ -51,6 +51,19 @@ Analysis: [ICON_firmware.md](ICON_firmware.md).
 | FW-9 | **`MARTHAHANSMS` signature** at ROM offset 7FD4 | Historical | Ask former CEMCORP staff | P3 | open |
 | FW-11 | **How were 800K (10-sector) boot disks booted?** The 5053 ROM's floppy loaders hard-code 8 sectors/track, so they can only read blocks 1–8 correctly on a 10-sector disk. Yet the fileserver boot disks are 800K, with their root directory at block 12/15 after a loader. Either the LEXICON's Rel. 2.11 ROM handles 10 spt, or the loader fits in blocks ≤ 8 and reads the rest itself | Says which ROM booted fileservers. Also important for an emulator | Read the block-1 +2/+4 fields on the boot disks: is start+count ≤ 9? Then dump Rel. 2.11 (FW-2) | P2 | open |
 | FW-10 | **Schematics / the CEMCORP ICON Hardware Manual** | Would answer FW-4 to FW-7 in one go | Search archives and ask contacts (PPL) | P2 | open |
+
+## 3b. Hardware inventory
+
+Inventory: [ICON_hardware.md](ICON_hardware.md).
+
+| ID | Gap | Why it matters | How to close it | Pri | Status |
+|---|---|---|---|---|---|
+| HW-1 | **ICON2 CPU and clock speed** (it runs MS-DOS code natively, so it's x86; is it an 80186 or an 80286?) | Emulation | Disassemble `ws2_boot` and `machine_test` (the `+c` code); ICON2 board photos | P2 | open |
+| HW-2 | **ICON3 hardware:** CPU, RAM, video, and how `set_cpu_speed` works | Completeness and emulation | Disassemble `ws3_boot` and `set_cpu_speed`; archeobits owns one | P3 | open |
+| HW-3 | **Exact PW2 300 / PW2 800 models** behind "ICONNET 286 / 386" | Fileserver history | Unisys PW2 product literature | P3 | open |
+| HW-4 | **The `machine_test` return codes in full** (`+c`, `+b`, `+k`, `+e`), and where it reads them from (NVRAM? the ROM?) | Would fill in NVRAM words 1–4 and 13–15 (FW-4) | Disassemble `/sys/machine_test` (v91.08) and `/sys/check_machine` | P1 for emulation | open |
+| HW-5 | **The `/config/hw_dbase.*` hardware database format** (an indexed database with `.kya`–`.kyc` keys) | It may record each node's hardware | Dump it from a configured fileserver image | P3 | open |
+| HW-6 | **The ICON2 I/O Module and "external card"** (`machine_test +e`) | Completeness | Manuals or hardware | P3 | open |
 
 ## 4. Boot and network
 
@@ -110,6 +123,7 @@ Status as reported on 2026-10-28 (`src/fs/qnx2.rs`). Things already working: det
 | Where is the node ID stored? | NVRAM word 10, high byte; the low byte is the boot server | ICON_firmware.md §5 |
 | How does a station choose its boot source? | NVRAM word 0 bits 12–15. The order is floppy → network → hard disk | ICON_firmware.md §4 |
 | What is in `/boot`? | `ws_boot`, `hd_boot`, `fs_net_boot` (formats still open: EXE-3) | ICON_disk_layout.md §2b |
+| ICON boot selector → boot image | `/config/boot_config`: 0 = fileserver, 1/2 = ICON, 3 = ICON3, 16/18/20 = ICON2, 22–24 = Netcard PC | ICON_hardware.md §1 |
 | Extent size units / file length | `size_xtnt` = bytes; length = sum of the extents' sizes | ICON_qnx2_filesystem.md (update box) |
 | Block size and floppy geometry | 512 bytes; 80×2×8 = 1280 blocks | ICON_qnx2_filesystem.md §1, §8 |
 | The directory entry layout | 48 bytes, verbatim from `/lib/fsys.h` | ICON_qnx2_filesystem.md §3 |
