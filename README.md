@@ -14,6 +14,7 @@ Initial starting point repo to gather data about the ICON / LEXICON and ICON2 li
 | [ICON_software_catalog.md](ICON_software_catalog.md) / [.csv](ICON_software_catalog.csv) | Software titles and preservation status |
 | [ICON_web_research.md](ICON_web_research.md) | Findings from web sources, open questions |
 | [firmware/ICON1/](firmware/ICON1/) | ICON1 boot ROM dumps (5053-1/-2 ISS 2) and the (bad) keyboard dump |
+| [re_notes/](re_notes/) | Reverse-engineering notes from the ROM and 4.x disks: COM9026, keyboard/trackball/video, NVRAM/RTC/disk/installer |
 | [manual_notes/](manual_notes/) | Cited extracts from the York University Unisys ICON manual set (ISSSW 3.00–4.01) |
 | [reference/q2tools/](reference/q2tools/) | Public-domain QNX 2 `q2files.c` / `q2read.c` (M. Schoenbrun, 2010), from the YorkU material |
 | `book_of_icon*.md`, `ocr_*` | OCR of *The Book of ICON* (1985) |
