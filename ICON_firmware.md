@@ -134,6 +134,7 @@ All three disk loaders work the same way. They read **one 512-byte boot sector**
 What this means for a filesystem reader:
 - **QNX block *n* (1-based) is at byte offset (n−1) × 512** in a raw floppy image stored in cylinder, head, sector order. Block 1 is the boot sector.
 - The ROM can boot only the 8-sector format. The Admin Guides also document a **10-sector/track 800 KB** format, so a reader should detect the format from image size (655360 vs 819200 bytes).
+- **Real-world note (2026-10-28):** all 34 YorkU QNX disks are **800K / 10 spt**, including the fileserver boot disks. This ROM's loaders assume 8 spt, so it could read only blocks 1–8 of them correctly. See gaps.md FW-11.
 - The **ICON floppy format** is 80 tracks, DS, **8 × 512-byte sectors**, 640 KB. That gives **1280 blocks**, and the book's "1276 free blocks" after `dinit` fits that.
 - **20808 blocks** is exactly the 4.x installation guides' "old format" 10 MB fileserver disk, so that number is confirmed. Larger disks (the 64 MB Micropolis) can't be booted by this ROM's hard-disk loader. That would explain the later Rel. 2.11 ROMs.
 

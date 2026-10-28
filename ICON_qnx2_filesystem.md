@@ -12,7 +12,18 @@ This spec combines four sources. Each fact carries a tag in the confidence colum
 
 Full manual extracts with page citations are in [manual_notes/](manual_notes/).
 
-> ⚠️ **Nothing here has been checked against a real image yet.** The disk images are being handled separately. Items marked **VERIFY** are the ones to settle first against a known-good floppy, such as the 4.10.01 Help diskette.
+> **Update (2026-10-28): verified against real images.** RustyBackup's QNX 2 reader (`src/fs/qnx2.rs`) exports all 34 QNX disks in the YorkU `Disk_1` set, 2,498 entries, with no errors. What it established:
+> - **Extent `size_xtnt` counts bytes:** the data bytes after the 16-byte header. `bound_xtnt` is the number of extra blocks in the extent. **A file's length is the sum of its extents' `size_xtnt`.** The Q2 formula in §4 overshoots.
+> - `fnum_blks` = total blocks − 1. `fnum_chars_free` is 0 and the "fseconds" bytes are 0 on every file checked.
+> - The root `dir_entry` is at block 1 + 68 on every disk. On fileserver boot disks it points to a root directory at **block 12 or 15**, after the boot loader.
+> - The directory header is 4 bytes, or 6 when bit 15 of `dir_index` is set; this works as specified.
+> - **Every YorkU QNX disk is 800K** (80×2×10). The bitmap is at block 2: 200 bytes for 1,600 blocks, 1 bit per block. No 640K disk has been tested.
+> - The disks labelled "QDOS" are QNX 2 volumes, so detection must go by content, not by label.
+> - Still unverified: the date layout (§6), the bitmap bit order, the meaning of the permission bits on disk, and hard disks.
+>
+> The rest of this file is the original pre-verification spec. Where it conflicts with the box above, the box wins.
+>
+> ⚠️ *(Original note)* **Nothing here has been checked against a real image yet.** The disk images are being handled separately. Items marked **VERIFY** are the ones to settle first against a known-good floppy, such as the 4.10.01 Help diskette.
 
 ## 1. Basics
 
@@ -82,8 +93,8 @@ struct xtnt_hdr {      /* off */
 Field names are confirmed by the `chkfsys` messages [SSOG A-11..15]: "prev/next", "size_xtnt must be ≠ 0", "Bound of extent inconsistent with size", "Bound past end of disk", and "Non-zero extent extension". The last suggests a reserved field that must be zero, possibly in the header block or in an extended form.
 
 - **Data layout** [Q2]: an extent's data begins at byte 16 of its first block and runs through the remaining blocks of the extent, which are contiguous, using all 512 bytes of each. Then it continues with the next extent, again after a 16-byte header.
-- **Logical file size** [Q2]: `fnum_blks*512 + 512 − (fnum_chars_free & 0x1FF) − fnum_xtnt*16`. This formula depends on the fspare interpretation in §3. **VERIFY.**
-- ⚠️ Q2 decrements `size_xtnt` once per byte read. If the field is really a block count, Q2 would stop after N bytes per extent. That would explain the "sometimes crashes / sometimes works" reports, so don't copy this part of Q2 blindly. Check it with a multi-block, single-extent file.
+- **Logical file size: ✅ VERIFIED.** It is the **sum of `size_xtnt` over all extents**, which are byte counts of the data after each 16-byte header. `bound_xtnt` = the extra blocks allocated in the extent. Q2's formula `fnum_blks*512 + 512 − (fnum_chars_free & 0x1FF) − fnum_xtnt*16` is **wrong**: it overshoots.
+- *(Superseded)* Q2 decrements `size_xtnt` once per byte read. If the field is really a block count, Q2 would stop after N bytes per extent. That would explain the "sometimes crashes / sometimes works" reports, so don't copy this part of Q2 blindly. Check it with a multi-block, single-extent file.
 
 ## 5. Directory files
 
