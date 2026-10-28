@@ -4,6 +4,7 @@ Initial starting point repo to gather data about the ICON / LEXICON and ICON2 li
 
 | File | What |
 |---|---|
+| [gaps.md](gaps.md) | **Known gaps, by ID and priority: start here to pick the next target** |
 | [ICON_firmware.md](ICON_firmware.md) | Disassembly notes on the ICON boot ROM (5053 ISS 2): memory and I/O map, NVRAM layout, loader order, network-boot protocol, error codes |
 | [ICON_qnx2_filesystem.md](ICON_qnx2_filesystem.md) | Working spec of the QNX 2 on-disk format, for a RustyBackup reader |
 | [ICON_boot_and_network.md](ICON_boot_and_network.md) | How stations boot and network |
