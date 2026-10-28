@@ -122,6 +122,13 @@ The loader is compiled C. It runs as follows.
 
 The 4-byte gap after `'seg'` and the server's reply format look like a QNX 2 "segment load" message. **Inference:** the LEXICON's drive-8 RAM disk image is served block by block this way.
 
+### 6b. Server side (from `/sys/bootrec` and `/sys/bootsnd` on the 4.x disks)
+
+- `bootrec` (2 KB) runs on every cluster fileserver. It listens for `'seg'` requests and starts `bootsnd`; with `+logging` it logs to `1:/tmp/bootlog`.
+- `bootsnd` (4 KB) looks up the request's **type** (the image selector) in `1:/config/boot_config`, then reports `Broadcasting %s (type %u)` and `sending download packet (%u) for type %u`. **The image is broadcast**, so every station waiting for the same type takes the blocks from one stream. That is why the ROM keeps a bitmap of received blocks and accepts them in any order.
+- `boot_config` maps selector → file. In 4.10.01: 0 `hd_boot`/`fd_boot` (fileserver), 1 `ws_boot`, 2 `ws_fsys_boot`, 3 `ws3_boot`, 16/18 `ws2_high_boot`, 20 `ws2_fsys_boot`, 22 `ws_atp_boot`, 23 `hd_atp_boot`/`fd_atp_boot`, 24 `hd_atp_scsi_boot`. See ICON_hardware.md §1.
+- After boot, everything is **QNX 2 native networking**: message passing between nodes over ARCNET (remote disks via `remdisk`, `[node]` paths, the `poll`/`alive` node poller, the `def_server` name server). It is proprietary and undocumented. An emulator doesn't need to understand it if the COM9026 is emulated at register level, because the guest OS implements the protocol itself. **No TCP/IP, RPL or standard ARCNET boot protocol is involved.**
+
 ## 7. Disk loaders: geometry for the filesystem reader (confirmed)
 
 All three disk loaders work the same way. They read **one 512-byte boot sector** to `3000:0000`, and take the **start block** (1-based, word at +2) and **sector count** (word at +4) from it. They then read that many **contiguous** sectors to `3000:0000` onward and `call far 3000:0000`.
@@ -134,6 +141,7 @@ All three disk loaders work the same way. They read **one 512-byte boot sector**
 What this means for a filesystem reader:
 - **QNX block *n* (1-based) is at byte offset (n−1) × 512** in a raw floppy image stored in cylinder, head, sector order. Block 1 is the boot sector.
 - The ROM can boot only the 8-sector format. The Admin Guides also document a **10-sector/track 800 KB** format, so a reader should detect the format from image size (655360 vs 819200 bytes).
+- **Boot disks vs this ROM (resolved, FW-11):** the 4.01 and 4.10 fileserver boot disks have boot start = 3 and count = 10 or 9, so they load **blocks 3–12 or 3–11**. On a 10-sector disk this ROM's 8-sector mapping reads block 9 onward from the wrong sectors. **This ROM cannot boot the 800K fileserver boot disks.** The fileserver needs the later Rel. 2.11 ROM (or an emulator with a patched or high-level loader).
 - **Real-world note (2026-10-28):** all 34 YorkU QNX disks are **800K / 10 spt**, including the fileserver boot disks. This ROM's loaders assume 8 spt, so it could read only blocks 1–8 of them correctly. See gaps.md FW-11.
 - The **ICON floppy format** is 80 tracks, DS, **8 × 512-byte sectors**, 640 KB. That gives **1280 blocks**, and the book's "1276 free blocks" after `dinit` fits that.
 - **20808 blocks** is exactly the 4.x installation guides' "old format" 10 MB fileserver disk, so that number is confirmed. Larger disks (the 64 MB Micropolis) can't be booted by this ROM's hard-disk loader. That would explain the later Rel. 2.11 ROMs.
