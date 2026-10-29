@@ -235,6 +235,20 @@ The main-board RAM sizing at `09EA` treats a 1 MB board as 3 extra banks (it tes
 
 **Bit 10 clear:** the network loader takes `UMCS & FFC0`, which gives **FF00**. So the COM9026 RAM would sit in the 4 KB UCS window at FF000, where the ROM's reset vector also lives. That only works if the card or the CF80 write changes what UCS selects, and the ROM can't be in that window while the network RAM is. This mode is **not emulated**, and is unexplained until the PALs are read.
 
-**The old 5053 ISS 2 ROM** doesn't know the card. With word 0 set for 1 MB (bit 11 clear) it sizes 3 extra banks, never writes CF80, and its network loader fails with **57** "Network loader has returned with an error" (in icon-emu). So the card needs Rel 2.11.
+**The 4.10 kernels** (disassembled from RAM dumps of running 1 MB nodes: the fileserver's 4.10.01 `hd_boot` and the workstation's 4.10.05 `ws_boot`). They match the map above.
+- **They don't probe memory; they trust NVRAM.** At kernel `009C:505C` (`hd_boot`; `009C:4D19` in `ws_boot`) the kernel reads word 0 through `int 5Ch` fn 2Dh and switches on `word0 & 0803h` (table at kernel DS:00E6):
 
-**The 4.10 kernels:** with the card emulated as above, a 1 MB workstation network-boots the 4.10.05 `ws_boot` to `Login:`, and a 1 MB fileserver boots 4.10.01 `hd_boot` from its hard disk. `net` reports **969 KB** total per node (737 KB free on a workstation), against 490 KB on a 512 KB node. `nv_config` reports "Memory 1024 KB", but it only reads NVRAM. 969 KB ends at F2400, below MCS0 at F4000, so the kernels evidently take the top of memory from the chip selects or the ROM's setup. How they do it hasn't been disassembled yet (HW-7).
+  | word0 & 803 | Top of memory | Display segment (sys+62h) | `machine_test +m` flag |
+  |---|---|---|---|
+  | 803 (128 KB) | 1AB0 | 1ABA | 10 |
+  | 800 (256 KB) | 3AB0 | 3ABA | 20 |
+  | 801 (384 KB) | 5AB0 | 5ABA | 30 |
+  | 802 (512 KB) | 7AB0 | 7ABA | 40 |
+  | **001 (1 MB card)** | **F700** | **5ABA** | **80** |
+
+  (The `machine_test` flags are set at `009C:5857` (`hd_boot`) or `009C:5514` (`ws_boot`) into word [067F].)
+- On a 512 KB node, memory runs from the end of the kernel to 7AB00, and the display pages sit above it. On a **1 MB node** the kernel builds two free blocks (`009C:5104`): from its end up to **5AB00**, and from **5F6A0** up to **F7000**. The hole between them is the 19 KB display page at 5ABA0. So the kernel expects contiguous RAM up to F6FFF and nothing of its own at F7000 and above: exactly the bit-10-set layout. 988 KB − 19 KB = **969 KB**, which is what `net` reports (490 KB at 512 KB).
+- **The network driver** (a task loaded at CS 1000 on a workstation, linear 1972B; 1CFF:972B on the fileserver) computes the COM9026 RAM segment from MMCS/MPCS with the ROM's formula, `(MMCS & FE00) + 3·((MPCS & 7F00) >> 1)`. It stores it at [0AAD] and doesn't test word 0 bit 10. So the kernels find F7000 because Rel 2.11 has reprogrammed the chip selects. They never write the chip selects or port CF80.
+- With these kernels, the **bit-10-clear** layout can't work. Rel 2.11 leaves MMCS/MPCS at their reset values there, so the driver would use D8000, while the kernel hands out D8000 as free RAM. Bit-10-clear 1 MB boards probably don't exist, or ran other software (INFERRED).
+
+**The old 5053 ISS 2 ROM can't run a 1 MB node.** It doesn't know the card: it sizes word 0 bits 0–1 = 1 as main-board banks, never writes CF80 and leaves MMCS at C000. The 4.10 kernel would then take RAM up to F7000, overlapping the network RAM at D8000 and the ROM area. In icon-emu the image loads (entry 0070:0000), but the workstation hangs on a blank console before `Login:`.

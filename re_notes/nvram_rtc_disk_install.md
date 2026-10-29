@@ -95,7 +95,7 @@ At boot, kernel init (`009C:4F6A`–`5690`) copies words into the sysblock (far 
 
 | Word | Bits | Meaning | Status / evidence |
 |---|---|---|---|
-| **0** | 0–1 | RAM: with bit 11 = 1: 3 = 128 KB, 0 = 256 KB, 1 = 384 KB, 2 = 512 KB. With bit 11 = 0 and bits = 1: 1 MB board | CONFIRMED. ROM `F88F:090C` tests (bits+1) extra banks, none if 3. nv_config switch table data 0x421: {0x803→128, 0x800→256, 0x801→384, 0x802→512, 0x001→1024}. Kernel sets the `machine_test +m` flags 10h/20h/30h/40h/80h (`009C:5857`) |
+| **0** | 0–1 | RAM: with bit 11 = 1: 3 = 128 KB, 0 = 256 KB, 1 = 384 KB, 2 = 512 KB. With bit 11 = 0 and bits = 1: 1 MB board | CONFIRMED. ROM `F88F:090C` tests (bits+1) extra banks, none if 3. nv_config switch table data 0x421: {0x803→128, 0x800→256, 0x801→384, 0x802→512, 0x001→1024}. Kernel sets the `machine_test +m` flags 10h/20h/30h/40h/80h (`009C:5857`). The kernels also take the top of memory (1AB0/3AB0/5AB0/7AB0/**F700** for 1 MB) and the display segment from these bits; they don't probe RAM (ICON_firmware.md, "The 1 MB upgrade card under Rel 2.11") |
 | | 2 | **0 = fileserver board with WD1002-05** (the ROM floppy loader goes through the WD1002, and the ROM tests the WD1002). **1 = workstation** (on-board 1797) | CONFIRMED: ROM `F88F:11AE`, nv_config `0x4B6` ("Fileserver" if bit 2 = 0), set_boot_type `0x1DE` |
 | | 3 | 1 = no on-board 1797 floppy (ROM skips test 46–4A); nv_config prints "Local diskette drive" = ¬bit 3 | CONFIRMED: ROM `F88F:11B9`; nv_config `0x5E1` |
 | | 4 | 1 = no serial / baud-rate hardware (ROM skips tests 2B/2C and 38–3F); nv_config "Serial port" = ¬bit 4 | CONFIRMED: ROM `F88F:0E01`, `F88F:10C7`; nv_config `0x5EC` |
@@ -104,7 +104,7 @@ At boot, kernel init (`009C:4F6A`–`5690`) copies words into the sysblock (far 
 | | 7 | 1 = no keyboard (the ROM tolerates a missing keyboard interrupt); nv_config "Keyboard" = ¬bit 7 on fileservers | CONFIRMED: ROM `F88F:0949`; nv_config `0x5F7` |
 | | 8 | 1 = no TMS5220 speech chip (ROM skips tests 4B–4E) | CONFIRMED: ROM `F88F:129E` |
 | | 9 | not referenced by anything examined | — |
-| | 10 | Not used by 5053 ISS 2 or the 4.x kernels. **Rel 2.11 ROM:** 1 = the COM9026 RAM is decoded by the mid-range chip selects (D8000 on a standard board); 0 = the loader looks for it at UMCS & FFC0. Set it for Rel 2.11 workstations | CONFIRMED: Rel 2.11 ROM file 3ACD–3B17, 0086, 0A2B (ICON_firmware.md "Rel 2.11 boot ROM") |
+| | 10 | Not used by 5053 ISS 2 or the 4.x kernels (their network driver reads MMCS/MPCS instead, so it follows whatever the ROM programmed). **Rel 2.11 ROM:** 1 = the COM9026 RAM is decoded by the mid-range chip selects (D8000 on a standard board); 0 = the loader looks for it at UMCS & FFC0. Set it for Rel 2.11 workstations | CONFIRMED: Rel 2.11 ROM file 3ACD–3B17, 0086, 0A2B (ICON_firmware.md "Rel 2.11 boot ROM") |
 | | 11 | 0 = 1 MB memory board (see bits 0–1) | CONFIRMED (see above) |
 | | 12–15 | Loader disables: 12 = network, 13 = floppy, 14 = hard disk, 15 = ROM slot (1 = disabled) | CONFIRMED: ROM (ICON_firmware §4); nv_config `0x11D2` prints the order floppy → server → hard disk |
 | **1–2** | | Hardware serial number, 32-bit `(w1<<16)\|w2`. Bits 31–28 = a, 27–24 = b, 23–20 = year−80, 19–16 = month, 14–10 = day, 9–0 = sequence. Printed as `%d%02d-%02d%02d%02d-%03d` (b, a, yy, mm, dd, seq) | CONFIRMED: nv_config `0x1CD`–`0x266` |
