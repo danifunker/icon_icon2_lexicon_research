@@ -15,7 +15,7 @@ An MIT dependency inside the AGPL-3.0 RustyBackup is fine.
 ## The crate
 
 - Repository: <https://github.com/danifunker/qnx2fs> (public), local checkout `~/repos/qnx2fs`.
-- Not on crates.io yet. It uses the opticaldiscs-rs release model (`ci.yml` + manual `publish-crates-io.yml`); publishing waits for a `CARGO_REGISTRY_TOKEN` secret. Until then RustyBackup depends on it by **git URL**.
+- **Published on crates.io as `qnx2fs` 0.1.0** (<https://crates.io/crates/qnx2fs>). Releases go through its opticaldiscs-rs-style pipeline (`ci.yml` + manual `publish-crates-io.yml`). icon-emu depends on `qnx2fs = "0.1"`.
 - No dependencies. `chrono` is replaced by civil-date arithmetic. `rust-version = "1.73"`. Its CI checks Rust 1.73, `wasm32-unknown-unknown`, fmt, clippy `-D warnings` and docs on Linux / macOS / Windows. The first run passed.
 - The on-disk logic is the code from `src/fs/qnx2.rs` at `8460029f`, unchanged. The API is standalone:
   - `Volume<D>`: `open(dev, offset)`, `root()`, `list_dir(&Entry, include_deleted)`, `read_file`, `lookup(path)`, `check() -> Report`, `total_blocks()`, `free_blocks()`, `root_first()`, `set_clock(unix)`.
@@ -33,8 +33,8 @@ The branch was cut from `main` at `8460029f`. Its changes are in the working tre
    - It keeps the `[deleted]` / `[deleted N]` naming, `native_attrs`, owner labels, Unix modes and the fsck stats (`Blocks`, `Free blocks`, `Deleted entries`).
    - It re-exports `decode_date`, `encode_date`, `looks_like_qnx2`, `looks_like_rs_text`, `rs_to_lf` and `RS`, so `src/partition/mod.rs`, `src/fs/mod.rs`, `src/cli/verbs/get.rs` and `src/gui/browse_view.rs` compile unchanged.
    - The detailed format tests moved into the crate. Two adapter tests remain: listing with deleted-entry tagging, and a trait-level edit round trip with fsck.
-2. **All four manifests** (`Cargo.toml`, `rb-cli-vintage/`, `rb-cli-ppc/`, `rb-cli-sol9/`) have `qnx2fs = { git = "https://github.com/danifunker/qnx2fs" }`.
-   - Each lockfile gained only the `qnx2fs` entry, pinned at commit `54c5d2c` through `cargo metadata`. Nothing else was re-resolved.
+2. **All four manifests** (`Cargo.toml`, `rb-cli-vintage/`, `rb-cli-ppc/`, `rb-cli-sol9/`) still say `qnx2fs = { git = "https://github.com/danifunker/qnx2fs" }`, written before the crate was published.
+   - **First step:** change each to `qnx2fs = "0.1"`, the published crate, then refresh only that entry in each lockfile (`cargo update -p qnx2fs --manifest-path <manifest>`). The lockfiles currently hold just the git entry; nothing else was re-resolved.
 
 ## What was checked
 
@@ -65,7 +65,7 @@ Suggested order:
 
 - **Default-feature build** (GUI included): only the slim build above was compiled. Run `cargo build --all-targets` (zero warnings, per CONTRIBUTING) and `cargo test --lib`.
 - **The regression suite** with the NAS corpus: at least tier 2 `read.qnx2.*` and tier 3 `edit.qnx2.*`, via `rb-regress run --tiers 0-3 --require-clean`. The `fs.qnx2.*` fixtures are on the NAS, not in the repo.
-- **The vintage build on 1.73.0**, as in `release.yml`'s 1.73 jobs. The crate's own CI already builds and tests on 1.73, so this should pass. `rb-cli-ppc` and `rb-cli-sol9` (mrustc, still "scoping") need only the manifest line; `cargo vendor` will pick up the git dependency.
+- **The vintage build on 1.73.0**, as in `release.yml`'s 1.73 jobs. The crate's own CI already builds and tests on 1.73, so this should pass. `rb-cli-ppc` and `rb-cli-sol9` (mrustc, still "scoping") need only the manifest line; `cargo vendor` picks up a crates.io dependency like any other.
 - **Docs:** `docs/PLAN-qnx.md`, the README filesystem table row for QNX 2, and `OUTSTANDINGWORK.md` should say that the QNX 2 code now lives in `qnx2fs`.
 - Optionally, a THIRD_PARTY / dependency note that `qnx2fs` is MIT.
 
