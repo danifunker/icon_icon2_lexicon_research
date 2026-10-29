@@ -51,7 +51,7 @@ Goal: make **icon-emu** emulate an ICON workstation (and, if it falls out, a LEX
 - **`0x0086`:** if word 0 bit 11 is clear (1 MB), it calls `0x1507` when bit 10 is clear, then `0x1523`.
 - **`0x1507`:** copies the 32 KB ROM from F800:0 into RAM at **6000:0**, presumably so it can run from RAM while it remaps memory. Follow where it jumps.
 - **`0x1523`–`0x1585`:** the 1 MB card test.
-  - Writes 0xCF80 to port… (check).
+  - `out` to I/O port **CF80**, an address used nowhere else on the main board. It may be a control register on the card; find out what value it writes.
   - Reads NVRAM word 0 and tests bit 10 (0x400).
   - **Bit clear:** sets UMCS=FF38, then tests memory at EF00 (`call 0x797`, bl=0x50 = error 50).
   - **Bit set:** sets UMCS=F83D, MPCS=82BB, MMCS=F5F8, then tests at E700.
