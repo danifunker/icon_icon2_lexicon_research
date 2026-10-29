@@ -15,6 +15,7 @@ An MIT dependency inside the AGPL-3.0 RustyBackup is fine.
 ## The crate
 
 - Repository: <https://github.com/danifunker/qnx2fs> (public), local checkout `~/repos/qnx2fs`.
+- **qnx2fs 0.2.0** (pushed; it goes to crates.io once its Release workflow runs) adds `Attributes`, `NewEntry::attributes` / `NewEntry::like`, `Volume::copy_from` (file or folder tree from another volume, keeping permissions, owners and dates), `Volume::replace` (overwrite keeping permissions and owner) and `Volume::set_attributes`. **Breaking:** `NewEntry` has a new field, so the adapter's `NewEntry { mode, uid, gid, mtime }` literal needs `..Default::default()`. Worth using: RustyBackup's `cp` between two images, and any "replace" path, can keep QNX metadata exactly through these.
 - **Published on crates.io as `qnx2fs` 0.1.0** (<https://crates.io/crates/qnx2fs>). Releases go through its opticaldiscs-rs-style pipeline (`ci.yml` + manual `publish-crates-io.yml`). icon-emu depends on `qnx2fs = "0.1"`.
 - No dependencies. `chrono` is replaced by civil-date arithmetic. `rust-version = "1.73"`. Its CI checks Rust 1.73, `wasm32-unknown-unknown`, fmt, clippy `-D warnings` and docs on Linux / macOS / Windows. The first run passed.
 - The on-disk logic is the code from `src/fs/qnx2.rs` at `8460029f`, unchanged. The API is standalone:
@@ -34,7 +35,7 @@ The branch was cut from `main` at `8460029f`. Its changes are in the working tre
    - It re-exports `decode_date`, `encode_date`, `looks_like_qnx2`, `looks_like_rs_text`, `rs_to_lf` and `RS`, so `src/partition/mod.rs`, `src/fs/mod.rs`, `src/cli/verbs/get.rs` and `src/gui/browse_view.rs` compile unchanged.
    - The detailed format tests moved into the crate. Two adapter tests remain: listing with deleted-entry tagging, and a trait-level edit round trip with fsck.
 2. **All four manifests** (`Cargo.toml`, `rb-cli-vintage/`, `rb-cli-ppc/`, `rb-cli-sol9/`) still say `qnx2fs = { git = "https://github.com/danifunker/qnx2fs" }`, written before the crate was published.
-   - **First step:** change each to `qnx2fs = "0.1"`, the published crate, then refresh only that entry in each lockfile (`cargo update -p qnx2fs --manifest-path <manifest>`). The lockfiles currently hold just the git entry; nothing else was re-resolved.
+   - **First step:** change each to `qnx2fs = "0.2"` (or `"0.1"` until 0.2.0 is published), the published crate, then refresh only that entry in each lockfile (`cargo update -p qnx2fs --manifest-path <manifest>`). The lockfiles currently hold just the git entry; nothing else was re-resolved.
 
 ## What was checked
 
