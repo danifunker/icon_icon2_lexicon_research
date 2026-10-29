@@ -127,8 +127,15 @@ Operating environment: 13–35 °C, 10–80 % relative humidity, altitude up to 
 ## Board photo (third party, ICON workstation main board, Microtel 350710-002, © 1984 CEMCORP)
 
 - **Boot ROMs:** U33 "LOGIC 200-504-000, CHK-SUM 2373, Rel 2.11 LOW" and U36 "200-503-000, CHK-SUM 048C, Rel 2.11 HIGH". These are the FW-2 pair, since dumped (`firmware/ICON1/icon1_rom_rel2.11_*`). The HIGH checksum is 048C; I first misread it as 04BC from the photo.
-- **"1 MEG ICON UPGRADE BOARD"** daughter card (CEMCORP 1988): MB81256-12 DRAMs, and labelled programmable parts "200-509-000 U33 REV 1.0" and "200-508-000 U31 REV 1.0". These probably decode the 1 MB memory map.
+- **"1 MEG ICON UPGRADE BOARD"** daughter card (CEMCORP 1988, artwork C051-ART-002 issue 4, serial 88102731). From the later photos of the card on its own, its underside, and the bare main board:
+  - **It plugs into the CPU socket.** The 80186 sits in a PLCC socket at main-board **U39**. On the card, **U34** is a PLCC socket that takes the CPU, and the pins on the card's underside plug into U39. So the card is interposed on the whole CPU bus, including the 80186 chip-select outputs, and its decode can use them.
+  - **Memory:** 18 × MB81256-12 (256K×1), i.e. 512 KB plus 2 more, probably parity. Together with the main board's 512 KB this makes 1 MB.
+  - **Glue logic:** 74ALS373 ×4 and 74LS373 ×2 (address latches), 74ALS245 ×2 (data buffers), 74LS157 ×2 (DRAM address multiplexers), 74S169, 74S74, 74S30, 74S244, and two "1166R-001 -330" delay lines (DRAM timing).
+  - **Programmed parts** (20-pin, probably PALs), still undumped: **U30 "200-507-000 REV 1.0"**, **U31 "200-508-000 REV 1.0"**, **U33 "200-509-000 REV 1.0"**. U32 is a plain DM74S244N; an earlier note wrongly guessed it was the third labelled part.
 - **Also visible:**
+  - the 80186 in a PLCC socket at U39 (under the 1 MB card when it's fitted);
+  - main RAM: 4 rows of 16 TMS4164 = 512 KB;
+  - TMS5220CNL date code DCU8514 (1985), Philippines;
   - COM9026 (SMC 8450) with a 20 MHz crystal;
   - Hitachi HD46505SP (the 6845 video chip);
   - two AMD P8255A-5;
