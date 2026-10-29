@@ -87,7 +87,7 @@ Media:
 | Display modes | ICON: 640×240×1, 320×240×2 (4 of 16 colours). ICON2 adds ×2 and ×4 bit-planes with **16 of 4096** colours. 80×24 text | Man |
 | Keyboards | ICON: built-in, CUR LOCK, Action keys, RESET; on its own 8035 MCU. ICON2: separate PC-style keyboard with trackball and DIP switches, fused +5 V feed | Man, ROM |
 | Pointing | Trackball (ICON quadrature counters; on the ICON2 it works as a Microsoft-mouse emulation under QDOS) | ROM, QDOS-RN |
-| Sound and speech | ICON: TI TMS5220 LPC. ICON2: Yamaha YM3014 DAC with a software TMS5220 emulator, plus a sound administrator. Headphone jack and volume control | Man |
+| Sound and speech | ICON: TI TMS5220 LPC, a **TMS5220CNL (5220C revision)** per a board photo, with no speech ROM (TMS6100). ICON2: Yamaha YM3014 DAC with a software TMS5220 emulator, plus a sound administrator. Headphone jack and volume control | Man, photo |
 | Telidon / NAPLPS | Software decoders (`gtask`, `naplps.sys`); `$tel` device for a Telidon modem | Man |
 | Clock | Battery RTC on fileservers (`read_rtc`, `set_rtc`). Workstations take the time from their server | Man |
 | NVRAM | 32-byte serial EEPROM (93x6) on every unit: node ID, boot server, boot options, video timing, serial number (`get_serial_no`, `nv_config`) | ROM, Disk |
@@ -113,3 +113,27 @@ Operating environment: 13–35 °C, 10–80 % relative humidity, altitude up to 
 | 4.00 / 4.01 (1989–90) | QNX 2.05b | Netcard (PW2 300 / 800) workstations and fileservers |
 | 4.10.01 (Sep 1991) | QNX 2.05b (ICON images) | **ICON3**, ICON2 hard disk and SCSI boot images, ICON_LOOK GUI |
 | 4.10.05 (Oct 1991) | ICON images 2.05b; **PC (ATP) images QNX 3.06** | Updated boot images |
+
+## Speech chip interface (from the ROM self-test and 4.10.01, confirmed in icon-emu)
+
+- **Port FA01:** reads return the TMS5220 status (TS, BL, BE in bits 7..5) and acknowledge the interrupt. Writes are commands, or speech data after Speak External (0x60). Reset is sixteen 0xFF bytes (0xFF decodes as the Reset command).
+- **Interrupt:** on PPI A port C bit 4, **active high** to the PPI. It shares INT2 with the COM9026 (PC5) and the printer.
+- **Self-test** (ROM F88F:1B94): reset, then check TS = 0 (error 4B). Speak External plus a 13-byte LPC sample, then expect the PC4 interrupt (4C). Wait for status & E0 = 60, i.e. stopped with the buffer empty (4D). Reset again and check TS = 0 (4E). The sample decodes to two voiced frames and a stop frame.
+- **Software:** `/sys/speech` (the Speech Administrator, started by `sys.init` on ICON workstations) and `say FILE`.
+- **Phrase files** are a series of 12-byte frames: energy, pitch, k1–k10 as parameter indices. `decode_phrase`/`encode_phrase` convert them to and from text, one frame per line. `convert_phrase` converts old TMS5220 "codepack" bitstreams.
+- No phrase files exist in the YorkU disk set.
+- **Clock:** an RC oscillator on the board, value unknown. 640 kHz (8 kHz output) is assumed.
+
+## Board photo (third party, ICON workstation main board, Microtel 350710-002, © 1984 CEMCORP)
+
+- **Boot ROMs:** U33 "LOGIC 200-504-000, CHK-SUM 2373, Rel 2.11 LOW" and U36 "200-503-000, CHK-SUM 04BC, Rel 2.11 HIGH". These are the FW-2 pair, still not dumped. The label reads 04BC, where our notes had 048C.
+- **"1 MEG ICON UPGRADE BOARD"** daughter card (CEMCORP 1988): MB81256-12 DRAMs, and labelled programmable parts "200-509-000 U33 REV 1.0" and "200-508-000 U31 REV 1.0". These probably decode the 1 MB memory map.
+- **Also visible:**
+  - COM9026 (SMC 8450) with a 20 MHz crystal;
+  - Hitachi HD46505SP (the 6845 video chip);
+  - two AMD P8255A-5;
+  - COP452-class counters (the trackball);
+  - 4 rows of TMS4164 (512 KB);
+  - empty "FUTURE" ROM sockets;
+  - a "FILESERVER" option area on the silkscreen.
+- **Not visible:** no WD1002 or 1797, so a fileserver's disk controller is a separate card.
