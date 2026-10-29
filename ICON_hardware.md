@@ -132,6 +132,7 @@ Operating environment: 13–35 °C, 10–80 % relative humidity, altitude up to 
   - **Memory:** 18 × MB81256-12 (256K×1), i.e. 512 KB plus 2 more, probably parity. Together with the main board's 512 KB this makes 1 MB.
   - **Glue logic:** 74ALS373 ×4 and 74LS373 ×2 (address latches), 74ALS245 ×2 (data buffers), 74LS157 ×2 (DRAM address multiplexers), 74S169, 74S74, 74S30, 74S244, and two "1166R-001 -330" delay lines (DRAM timing).
   - **Programmed parts** (20-pin, probably PALs), still undumped: **U30 "200-507-000 REV 1.0"**, **U31 "200-508-000 REV 1.0"**, **U33 "200-509-000 REV 1.0"**. U32 is a plain DM74S244N; an earlier note wrongly guessed it was the third labelled part.
+  - **Memory map (inferred from the Rel 2.11 ROM, see ICON_firmware.md "The 1 MB upgrade card under Rel 2.11"):** the ROM writes NVRAM word 0 to I/O port **CF80** (probably a card register), then moves the ROM window to F8000 (UMCS F83D) and the network RAM to F7000 (MMCS F5F8 / MPCS 82BB). The card's RAM fills 80000–F6FFF. icon-emu emulates this, and 4.10 runs on it with 969 KB available.
 - **Also visible:**
   - the 80186 in a PLCC socket at U39 (under the 1 MB card when it's fitted);
   - main RAM: 4 rows of 16 TMS4164 = 512 KB;

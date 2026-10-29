@@ -206,3 +206,35 @@ Dumped in 2026 (see `firmware/ICON1/README.md`). The byte sums match the labels:
 - In the **4.10.01 `ws_boot`**, offset 48h is inside the start-up stub's `mov di,0 / rep movsw`. The write breaks the stub, and the workstation crashes after loading.
 - The **4.10.05 patch release** (Nov 1991) changes `ws_boot` at exactly this point: at file offset 86h it inserts `EB 02 90 90` (`jmp +2; nop; nop`), leaving bytes 48h–49h free for the ROM to write.
 - With the 4.10.05 `ws_boot`, a Rel 2.11 workstation network-boots 4.10 to `Login:` (confirmed in icon-emu). A Rel 2.11 fileserver boots 4.10.01 from its hard disk unchanged.
+
+### The 1 MB upgrade card under Rel 2.11
+
+Read from the ROM code. The memory map is **inferred**: the card's decode is in its undumped PALs (U30/U31/U33, see ICON_hardware.md), so it is reconstructed from what the ROM programs and tests. icon-emu now emulates it this way (`--ram-kb 1024`), and the result boots.
+
+**When it runs (file `0086`):** after the main self-tests, if NVRAM word 0 bit 11 is clear (a 1 MB board), the ROM calls `1507` when bit 10 is clear, then `1523` in both cases.
+
+**`1507` (bit 10 clear only):** copies the whole 32 KB ROM from F800:0 to RAM at 6000:0. It then returns through a `retf` to **6000:0093**, so from then on the ROM runs from the RAM copy.
+
+**`1523`, the card test:**
+1. `out CF80h, ax`, where AX is NVRAM word 0. Nothing on the main board decodes CF80, so this is probably a register on the card. What the card does with the value is unknown.
+2. It re-reads word 0 and tests bit 10.
+   - **Bit 10 clear:** UMCS = **FF38**, so the upper chip select covers only FF000–FFFFF (4 KB). It tests 64 KB at **EF00:0**, i.e. EF000–FEFFF. RAM therefore reaches FEFFF, and the ROM can no longer be fetched below FF000, which is why it moved itself into RAM first.
+   - **Bit 10 set:** UMCS = **F83D** (the ROM at F8000–FFFFF, 32 KB), MPCS = **82BB** (mid-range block 16 KB, so each MCS is 4 KB), MMCS = **F5F8** (base F4000). MCS0–3 are then F4000, F5000, F6000 and **F7000**. It tests 64 KB at **E700:0** (E7000–F6FFF).
+3. In both cases it then tests 64 KB at each of 8000, 9000, … E000 (80000–EFFFF). A failure anywhere is error **50**, "One megabyte upgrade card RAM failure".
+
+**Where things end up with bit 10 set (the layout icon-emu emulates):**
+
+| Range | What |
+|---|---|
+| 00000–7FFFF | Main-board RAM (512 KB) |
+| 80000–F6FFF | Card RAM. It is tested right through F4000–F6FFF, so MCS0–2 select nothing on the bus there. |
+| F7000–F7FFF | MCS3: COM9026 buffer RAM (even bytes). The network loader computes F700 from MMCS/MPCS. |
+| F8000–FFFFF | UCS: the boot ROM |
+
+The main-board RAM sizing at `09EA` treats a 1 MB board as 3 extra banks (it tests 20000–7FFFF). The frame buffer follows word 0 bits 0–1 as usual: 1 gives 5ABA0.
+
+**Bit 10 clear:** the network loader takes `UMCS & FFC0`, which gives **FF00**. So the COM9026 RAM would sit in the 4 KB UCS window at FF000, where the ROM's reset vector also lives. That only works if the card or the CF80 write changes what UCS selects, and the ROM can't be in that window while the network RAM is. This mode is **not emulated**, and is unexplained until the PALs are read.
+
+**The old 5053 ISS 2 ROM** doesn't know the card. With word 0 set for 1 MB (bit 11 clear) it sizes 3 extra banks, never writes CF80, and its network loader fails with **57** "Network loader has returned with an error" (in icon-emu). So the card needs Rel 2.11.
+
+**The 4.10 kernels:** with the card emulated as above, a 1 MB workstation network-boots the 4.10.05 `ws_boot` to `Login:`, and a 1 MB fileserver boots 4.10.01 `hd_boot` from its hard disk. `net` reports **969 KB** total per node (737 KB free on a workstation), against 490 KB on a 512 KB node. `nv_config` reports "Memory 1024 KB", but it only reads NVRAM. 969 KB ends at F2400, below MCS0 at F4000, so the kernels evidently take the top of memory from the chip selects or the ROM's setup. How they do it hasn't been disassembled yet (HW-7).

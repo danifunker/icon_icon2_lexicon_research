@@ -64,6 +64,7 @@ Inventory: [ICON_hardware.md](ICON_hardware.md).
 | HW-4 | **The `machine_test` return codes in full** (`+c`, `+b`, `+k`, `+e`), and where it reads them from (NVRAM? the ROM?) | Would fill in NVRAM words 1–4 and 13–15 (FW-4) | Disassemble `/sys/machine_test` (v91.08) and `/sys/check_machine` | P1 for emulation | partly: `machine_test` and `check_machine` go through kernel `int 5Ch` NVRAM calls; codes come from NVRAM word 0 and word 12 (re_notes/nvram_rtc_disk_install.md) |
 | HW-5 | **The `/config/hw_dbase.*` hardware database format** (an indexed database with `.kya`–`.kyc` keys) | It may record each node's hardware | Dump it from a configured fileserver image | P3 | open |
 | HW-6 | **The ICON2 I/O Module and "external card"** (`machine_test +e`) | Completeness | Manuals or hardware | P3 | open |
+| HW-7 | **The 1 MB upgrade card's decode:** what port CF80 does with word 0; how the bit-10-clear layout (UCS FF38, network RAM at FF000, ROM run from a RAM copy) can work; how the 4.10 kernels find the top of memory (969 KB) and the network RAM on a 1 MB node | The map in ICON_firmware.md is inferred; emulators only cover the bit-10-set layout | Dump the card's PALs U30/U31/U33 (requested from the board's owner); find the chip-select reads in `ws_boot`/`hd_boot` | P2 | partly: the bit-10-set layout is reconstructed from the ROM and works in icon-emu (Rel 2.11 self-test passes, 4.10 boots, 969 KB) |
 
 ## 4. Boot and network
 
