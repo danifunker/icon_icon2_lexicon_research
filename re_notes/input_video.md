@@ -493,3 +493,12 @@ INT 64h is hooked too. Facts confirmed for the ICON:
 5. **The "baud-rate counter" chip** select code. Probably F983 bits 7..6 = 11.
 6. **The 3Fh/29h/35h counter set-up commands.** COP452 mode bits; they don't matter for emulation if counters free-run.
 7. **RESET key #016:** whether it is wired to the CPU RESET or NMI line.
+
+## The kernel's palette word (sys:0x6C) changed between 4.01 and 4.10 [C]
+
+The kernel keeps the screen palette in the system area at `sys:0x6C`; the system segment is at 0000:0182, and its offset at 0000:0180 is 0.
+- **4.01 `ws_boot`** stores NVRAM word 11 as it is: **F4F4**.
+- **4.10.01 and 4.10.05 `ws_boot`** store **one nibble per colour register**. In the 640-pixel mode (F983 bit 2 = 1), `kern:7DDD` turns F4F4 into **FF44**, i.e. registers 0,1 = 4 and 2,3 = F. The same routine writes F900..F906 = F4 F4 4F 4F.
+
+**Watcom Pascal 3.00 (1987)** `wedit` and `pascal_m` save that word at start-up and set the palette from it again (`wedit` file 0xDDD / 0xDF7). In the 640-pixel path they take registers 0-1 from the low nibble and 2-3 from the high nibble of the **low byte**. That is right for 4.01; on 4.10 all four become 4, a blank red screen, on real hardware as well. Taking registers 2-3 from the high nibble of the **high byte** instead (`8A E3` → `8A E7`, `mov ah,bh`; `wedit` file 0xE97, `pascal_m` file 0x10EE) is right for both kernels. icon-emu applies it with `icon-cli disk IMAGE fix-watcom`, or the Files panel's Fix button.
+
