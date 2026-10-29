@@ -4,7 +4,7 @@ Paste everything below the line into RustyBackup's main session. It follows `rus
 
 ---
 
-Goal: when RustyBackup copies, replaces, imports or exports files on QNX 2 volumes (Unisys ICON / LEXICON disks), keep their **permissions, owners and dates** exactly. Then decide, with the user, how **host dates outside 1980–1995** are written.
+Goal: when RustyBackup copies, replaces, imports or exports files on QNX 2 volumes (Unisys ICON / LEXICON disks), keep their **permissions, owners and dates** exactly, and write **host dates outside 1980–1995** with the agreed 1994 rule (below).
 
 ## Background
 
@@ -36,7 +36,7 @@ So `rb-cli cp` from one ICON disk image to another, `put --replace` over a QNX f
 
 ## What to do
 
-1. **Move to `qnx2fs = "0.2"`** in all four manifests: main, `rb-cli-vintage`, `rb-cli-ppc` and `rb-cli-sol9`. Fix the `NewEntry` literal, and refresh only the `qnx2fs` entry in each lockfile.
+1. **Move to `qnx2fs = "0.3"`** (0.2.0 if 0.3.0 isn't published yet) in all four manifests: main, `rb-cli-vintage`, `rb-cli-ppc` and `rb-cli-sol9`. Fix the `NewEntry` literal, and refresh only the `qnx2fs` entry in each lockfile.
 2. **QNX 2 → QNX 2: copy the raw attributes.** Pick whichever fits RustyBackup's design:
    - a raw carrier, the way `os_type` / `os_creator` carry Mac type and creator bytes. For example, `CreateFileOptions.native_qnx2: Option<qnx2fs::Attributes>`, filled from the source `FileEntry` when the source is QNX 2 and passed to `NewEntry::attributes` in the adapter;
    - or, when both ends are QNX 2 volumes, hand the whole operation to `Volume::copy_from`.
@@ -47,7 +47,7 @@ So `rb-cli cp` from one ICON disk image to another, `put --replace` over a QNX f
    - ICON dates are **local wall-clock time with no time zone**. `decode_date` returns those wall-clock seconds as if they were UTC. Displaying them as UTC shows the right clock time.
    - **Setting a host file's mtime, or a tar header's mtime, should read them in the host's local zone.** Otherwise every file is off by the zone offset; icon-emu was 4 hours early in New York before this was fixed.
    - icon-emu's `icon-cli disk get` does it with `chrono::Local.from_local_datetime`.
-5. **Host → QNX 2** (`put`, `untar`, `import`): permissions come from the host mode as now. That's fine; a host `0o755` gives QNX `e`. The **date** is the open question, below.
+5. **Host → QNX 2** (`put`, `untar`, `import`): permissions come from the host mode as now. That's fine; a host `0o755` gives QNX `e`. Dates follow the 1994 rule below.
 6. **Tests:** extend the `edit.qnx2.*` regression cases with:
    - a cross-image `cp` that checks `ls -o` attributes and dates are identical on both sides;
    - a `put --replace` that keeps `rwaem`;
@@ -58,36 +58,25 @@ So `rb-cli cp` from one ICON disk image to another, `put --replace` over a QNX f
    - for QNX's own verdict, boot the image with `icon-cli serve --hd IMG` and run `icon-ci run 'chkfsys 1'`;
    - **copy a program, then run it on the ICON.**
 
-## The 1980–1995 date problem (needs a decision with the user)
+## Dates: decided, the 1994 fold
 
 **The format.** An ICON / QNX 2 date is two 16-bit words:
 - word 0 has the year minus 1980 in bits 15–12, the month in bits 11–8, the day in bits 5–1 and PM in bit 0;
 - word 1 is seconds since 12 o'clock.
 
-The year field is 4 bits, so **only 1980–1995 can be stored**. There's also an unset value: the clock never set gives month and day 0, which QNX lists as `0-----80`.
+It is local time with no zone, and **only 1980–1995 can be stored**.
 
-**Where it bites:**
-- **ICON → ICON copies:** no problem. The raw words are copied (`Attributes`).
-- **ICON → host:** no problem. Every ICON date fits a host date; only the time zone matters (item 4 above).
-- **Host → ICON:** a problem. Any modern file (anything after 1995) can't be dated truthfully. Today `qnx2fs::encode_date` **clamps**, so every file RustyBackup imports from a modern host is dated **31-Dec-95 11:59:59 pm**.
-- **The emulator's clock** has the same problem, and it is handled there by moving "now" to **1991**, or **1992** when the host year is a leap year. The same month, day and time are kept, so leap days exist. Files QNX writes in icon-emu, and files its Files panel uploads, are therefore dated "today in 1991".
+**The rule (decided with the user):** a date outside that range is written as **the same month, day and time of day, in 1994**. **29 February goes to 1992**, the last leap year the ICON can store. Dates already in 1980–1995 are kept.
+- **1994 sorts after all the ICON system software**; the last release is 4.10.05, November 1991.
+- **It survives New Year's Eve:** a clock running past 31-Dec-1994 reaches 1995, which still encodes. With 1995 it would roll into 1996 and wrap round to 1980.
+- **It's in the crate:** `qnx2fs::fold_date`, applied automatically from **qnx2fs 0.3.0** to "now" and to `NewEntry::mtime`. Copied `Attributes` keep their stored date exactly. The crate README explains it.
+- **icon-emu's emulated clock uses the same function**, so the login screen shows, for example, `October 29 1994`, and files QNX writes in the emulator match RustyBackup's.
 
-**Options for host → ICON dates:**
-
-| Policy | 2026-03-14 10:00 becomes | Keeps | Loses | Notes |
-|---|---|---|---|---|
-| **Clamp** (current) | 1995-12-31 23:59:59 | that it's "modern" | everything else: all imports get one date | Simple, honest about the limit, useless for sorting |
-| **Fold** (icon-emu's clock) | 1991-03-14 10:00 | month, day, time; leap days (1992 for leap years) | the year, so files from different years interleave | Matches what QNX itself writes in the emulator |
-| **Shift by whole years** so the current year becomes 1995 | 1995-03-14 10:00 (2015 → 1984; before 2011 → clamped to 1980) | order, month, day and time, and relative age within 16 years | absolute years; 29 Feb in a shifted non-leap year has to become 28 Feb or 1 Mar | Best for sorting an imported archive; the result depends on the year you run it in |
-| **Same-calendar year** | 1987-03-14 (1987 has 2026's calendar) | weekday and day, so `files` shows sensible dates | the year; no in-range match for leap years starting Mon / Thu / Sat | Cute, rarely what people want |
-| **Fixed / "now" on the target's clock** | e.g. the date of the copy | nothing about the source | the source date | What QNX's `copy` from a host would do |
-| **Side channel** | real date kept elsewhere | everything | — | Each entry's 4-byte "seconds" field (+19) is 0 on every ICON file. It could hold a full Unix time, but whether any QNX 2 tool reads, keeps or zeroes it is **unknown**. Research it (QNX 2.x later versions, `backup`, `chkfsys`) before relying on it |
-
-**Recommendation** (to confirm with the user):
-- **Put the policy in the crate.** Add a `DatePolicy` (`Clamp`, `Fold`, `ShiftToYear(1995)`), plus an `encode_date_with(unix, policy)` in qnx2fs 0.3.0, so RustyBackup and icon-emu share one implementation and one definition. Keep `encode_date` as `Clamp` for compatibility.
-- **In RustyBackup**, add a flag such as `--qnx2-dates clamp|fold|shift` for `put` / `untar` / `import`. Default to **`shift`** for archival imports (it keeps order and relative age), and **say in the output** when dates were moved or clamped.
-- **Keep icon-emu's emulated clock on `Fold`.** It must match what QNX writes on the emulated machine. Its upload path could take the same flag later.
-- Whatever is chosen, **never silently clamp without telling the user.** A log line such as "12 files dated after 1995 were written as …" is enough.
+**What RustyBackup needs to do:**
+- **Depend on `qnx2fs = "0.3"`** once it is published; 0.3.0 also contains 0.2's `copy_from`, `replace` and `Attributes`. Host files passed with an mtime are then folded instead of all becoming 31-Dec-95 11:59:59 pm.
+- **Say so in the output** when a `put` / `untar` / `import` writes dates outside 1980–1995. For example: "QNX 2 stores years 1980–1995: 12 files were dated today's day in 1994".
+- **Document it** where RustyBackup describes QNX 2 support. Tell users to check the date an ICON shows at start-up: the login screen shows it, and it is what everything written from then on is dated.
+- **For ICON → host** (item 4 above), dates are exact. Only the time zone needs handling.
 
 ## Where things are
 
