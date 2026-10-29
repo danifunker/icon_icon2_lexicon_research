@@ -103,7 +103,8 @@ At boot, kernel init (`009C:4F6A`–`5690`) copies words into the sysblock (far 
 | | 6 | Selects a variant of the ROM baud-rate counter test | CONFIRMED use (ROM `F88F:0E11`); meaning unknown |
 | | 7 | 1 = no keyboard (the ROM tolerates a missing keyboard interrupt); nv_config "Keyboard" = ¬bit 7 on fileservers | CONFIRMED: ROM `F88F:0949`; nv_config `0x5F7` |
 | | 8 | 1 = no TMS5220 speech chip (ROM skips tests 4B–4E) | CONFIRMED: ROM `F88F:129E` |
-| | 9–10 | not referenced by anything examined | — |
+| | 9 | not referenced by anything examined | — |
+| | 10 | Not used by 5053 ISS 2 or the 4.x kernels. **Rel 2.11 ROM:** 1 = the COM9026 RAM is decoded by the mid-range chip selects (D8000 on a standard board); 0 = the loader looks for it at UMCS & FFC0. Set it for Rel 2.11 workstations | CONFIRMED: Rel 2.11 ROM file 3ACD–3B17, 0086, 0A2B (ICON_firmware.md "Rel 2.11 boot ROM") |
 | | 11 | 0 = 1 MB memory board (see bits 0–1) | CONFIRMED (see above) |
 | | 12–15 | Loader disables: 12 = network, 13 = floppy, 14 = hard disk, 15 = ROM slot (1 = disabled) | CONFIRMED: ROM (ICON_firmware §4); nv_config `0x11D2` prints the order floppy → server → hard disk |
 | **1–2** | | Hardware serial number, 32-bit `(w1<<16)\|w2`. Bits 31–28 = a, 27–24 = b, 23–20 = year−80, 19–16 = month, 14–10 = day, 9–0 = sequence. Printed as `%d%02d-%02d%02d%02d-%03d` (b, a, yy, mm, dd, seq) | CONFIRMED: nv_config `0x1CD`–`0x266` |

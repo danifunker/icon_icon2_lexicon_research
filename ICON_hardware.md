@@ -126,7 +126,7 @@ Operating environment: 13–35 °C, 10–80 % relative humidity, altitude up to 
 
 ## Board photo (third party, ICON workstation main board, Microtel 350710-002, © 1984 CEMCORP)
 
-- **Boot ROMs:** U33 "LOGIC 200-504-000, CHK-SUM 2373, Rel 2.11 LOW" and U36 "200-503-000, CHK-SUM 04BC, Rel 2.11 HIGH". These are the FW-2 pair, still not dumped. The label reads 04BC, where our notes had 048C.
+- **Boot ROMs:** U33 "LOGIC 200-504-000, CHK-SUM 2373, Rel 2.11 LOW" and U36 "200-503-000, CHK-SUM 048C, Rel 2.11 HIGH". These are the FW-2 pair, since dumped (`firmware/ICON1/icon1_rom_rel2.11_*`). The HIGH checksum is 048C; I first misread it as 04BC from the photo.
 - **"1 MEG ICON UPGRADE BOARD"** daughter card (CEMCORP 1988): MB81256-12 DRAMs, and labelled programmable parts "200-509-000 U33 REV 1.0" and "200-508-000 U31 REV 1.0". These probably decode the 1 MB memory map.
 - **Also visible:**
   - COM9026 (SMC 8450) with a 20 MHz crystal;

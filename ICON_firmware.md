@@ -185,3 +185,24 @@ The test list confirms the hardware: two 8255s, a 6845 CRTC, a COM9026, a TMS522
 - Write an **NVRAM image** spec (a 16-word table) so an emulator such as MAME can boot this ROM into the network loader.
 - Re-dump the keyboard's **external** program EPROM (see §1), then disassemble it for the scancode table.
 - Work out the server side of `'seg'` / `'b'` by matching it against the netboot code on a 4.x fileserver boot diskette (whoever is extracting Disk_1 should look for it).
+
+## Rel 2.11 boot ROM (U33 200-504-000 / U36 200-503-000)
+
+Dumped in 2026 (see `firmware/ICON1/README.md`). The byte sums match the labels: LOW 2373, HIGH 048C. It reports itself as "Diagnostics Report Rev 2.11". About 49 % of its bytes match 5053 ISS 2. Its reset vector jumps to F800:0000, where 5053 jumped to F88F:0000. The 8×10 font is unchanged, at file offset 301Ah (2CF4h in 5053).
+
+**New compared with 5053 ISS 2** (from its messages):
+- **1 MB upgrade card support:** test 50 "One megabyte upgrade card RAM failure", and memory sizing that reprograms the chip selects.
+- **A ROM loader:** 5e "Attempting to load from ROM".
+- **Hard disk:** "Hard Disk loading sequence started", plus detailed abort codes f3–ff (read error, invalid boot disk/loader, missing boot file, network failure, fileserver not responding, incomplete boot broadcast, excessive reconfiguration).
+- **Network:** test 34 "Network controller RECON interrupt present". "Loading from specified/default fileserver id": it tries the NVRAM boot server, then the default.
+- Message 00 is "DON'T PANIC". The signature at the end changed from `MARTHAHANSMS` to `NHBJMBHPHDVP`.
+
+**NVRAM word 0 bit 10** is new in Rel 2.11, and nothing else examined reads it:
+- With bit 11 clear (a 1 MB board), it selects which 1 MB memory-test path runs at reset.
+- In the network loader: **bit 10 set** means the COM9026 RAM segment is computed from the mid-range chip selects, `(MMCS & FE00) + 3 × ((MPCS & 7F00) >> 1)`. That gives D800 with the reset values MMCS C1F8, MPCS 90BB. **Bit 10 clear** means it takes UMCS & FFC0 (E000 at reset), which isn't where a standard ICON's network RAM is.
+- So a standard ICON workstation running Rel 2.11 needs bit 10 set. icon-emu's workstation preset is now EC2E.
+
+**Netboot:** the request (`seg`) and the boot broadcast (`b` blocks) are unchanged. The ROM still loads the image at 0070:0000. One addition: just before jumping to it, Rel 2.11 stores the boot server's node ID at **[ES:BX+48h]**, the boot parameter block, which the image header puts at 0070:0000.
+- In the **4.10.01 `ws_boot`**, offset 48h is inside the start-up stub's `mov di,0 / rep movsw`. The write breaks the stub, and the workstation crashes after loading.
+- The **4.10.05 patch release** (Nov 1991) changes `ws_boot` at exactly this point: at file offset 86h it inserts `EB 02 90 90` (`jmp +2; nop; nop`), leaving bytes 48h–49h free for the ROM to write.
+- With the 4.10.05 `ws_boot`, a Rel 2.11 workstation network-boots 4.10 to `Login:` (confirmed in icon-emu). A Rel 2.11 fileserver boots 4.10.01 from its hard disk unchanged.
