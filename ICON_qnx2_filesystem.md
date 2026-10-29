@@ -169,6 +169,19 @@ Partition 1 holds ICON System Software 4.10.01. All 425 installed files are byte
 | **QDOS pseudo-disks** (inside a QNX file) | `*.pf` = DOS floppy image (160/180/320/360 KB); `*.ph` = DOS hard-disk image (≤ 32 MB). Probably raw FAT volumes, so hand them to a FAT reader | QDOS Ops p23–25 |
 | **MS-DOS 3.2 boot and GW-BASIC floppies** | Plain FAT12 PC disks | Disk labels |
 
+## 9b. Text file encoding (CONFIRMED on real disks)
+
+Checked on all 933 text files of the installed 4.10.01 system and Help disk and every YorkU diskette, including the French Help (`/help/editeur`). icon-emu's `icon_core::text` decodes and re-encodes every one of them byte for byte.
+
+- **Line ends:** RS (0x1E).
+- **Accents:** Telidon / T.61 sequences, `0x19 <diacritic> <letter>`, as written by the ICON's editor (`/config/edite.config` holds 95) and by ICON-mode keyboard input.
+  - Diacritic codes: 0x41 grave, 0x42 acute, 0x43 circumflex, 0x44 tilde, 0x45 macron, 0x46 breve, 0x47 dot, 0x48 diaeresis, 0x4A ring, 0x4B cedilla, 0x4D double acute, 0x4E ogonek, 0x4F caron.
+  - Examples: `19 42 65` é, `19 42 45` É, `19 41 61` à, `19 43 6F` ô, `19 4B 63` ç.
+  - A diacritic followed by a space (`19 43 20`) is the accent on its own.
+  - In the ICON-mode key tables (ws_boot 4.10.01, img 0x16B9F), the é, ç and dead-accent keys all map to a bare 0x19. The rest of the sequence is added elsewhere; typed straight into the shell, only the 0x19 arrives.
+- **0x99 / 0x9A: underline on / off.** Help pages wrap headings in them (`\x99Typing Text Into Your Notebook\x9a`), and release notes put them around form feeds. `cat` on an emulated ICON shows the headings underlined. They are Telidon display codes, not code page 437's Ö / Ü.
+- **Other bytes 0x80–0xFF: code page 437** (QNX mode, the IBM PC character set). For example, `/config/iconnet_logo` draws its box with 0xC9 0xCD 0xBB 0xBA 0xC8 0xBC. In QNX mode the keyboard sends é as 0x82, É 0x90, ç 0x87 and Ç 0x80 (key table at img 0x168C3).
+
 ## 10. Suggested reader algorithm
 
 1. Choose the geometry from the image size (§8). If block 1 has a format table, let it override.
