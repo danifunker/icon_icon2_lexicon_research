@@ -137,9 +137,28 @@ The 4-bit year limits dates to 1980–1995. Files from the 4.10 era (1991) fit.
 | Other `fdformat` options | 40/80 tracks, 1/2 sides, 8/9/10 spt | 320–1600 | 160K–800K | SSOG Table 9-1 |
 | 10 MB fileserver disk, "old format" | 306 cyl × 4 heads × 17 spt | **20808** | 10,653,696 | ROM limit `5148h`, install guides |
 | 64 MB fileserver disk (QNX 2.11+) | physical block 1 = master partition record (up to 4 entries), then the **Bad Block Table** and a **loader area**, then **2 × 32 MB partitions** (drives 1: and 3:). Each partition has its own block 1 and bitmap | — | — | SSOG `bbt`/`mount` errors |
+| **40 MB Seagate ST-251** (real drive) | **820 cyl × 6 heads × 17 spt**, 102 blocks/cylinder | **83,640** | 42,823,680 | `ICON4_ST251_final` MFM capture (see below) |
+| 64 MB (emulator) | 1024 × 8 × 17, 136 blocks/cylinder | 139,264 | 71,303,168 | icon-emu `hdformat` run |
+
+**Hard-disk layout, confirmed on a real drive.** `ICON4_ST251_final` is an MFM-reader capture of a real ICON fileserver drive, a Seagate ST-251. The `.emu` file is a flux-level capture in David Gesswein's MFM reader/emulator format, read with `--format Intel_iSBC_214_512B --heads 6 --cylinders 820 --sectors 17,0`. The `.bin` was extracted as **820 × 8 × 17**, which pads two empty heads into every cylinder. Repack it to 6 heads (keep the first 102 of every 136 blocks) before use.
+
+Its block 1 has the same structure as the disks icon-emu's real `hdformat` made:
+
+| Item | ST-251 value |
+|---|---|
+| Header +02 / +04 | loader start block 3, length 14 |
+| Geometry record +10 | `02 01 02 06`: 6 heads; total blocks 83,640; 102 blocks per cylinder; 17 sectors per track; `03` at +2F |
+| BBT record +30 | 41 spare blocks (+33 = `29`); BBT at block 2, 1 block long |
+| Loader, blocks 3–16 | byte-identical to the 4.10.01 `HDos_ldr` written in the emulator |
+| Partition 1 | type **07**, start **60** (LBA 59), 65,535 blocks. 2 + 1 + 14 + 41 + 2 = 60, the same formula as the 10 MB (30) and 64 MB (89) disks |
+| Partition 2 | type **08**, start 65,595 (LBA 65,594), 18,046 blocks; never `dinit`ed (all zero) |
+
+**Bad Block Table entry format** (block 2): 8-byte entries, each a u32 **bad block number** (0 = entry unused) and a u32 **replacement block number**, assigned in sequence (21, 22, 23 …). On this drive and on emulator-formatted disks every entry is unused, so no remapping applies.
+
+Partition 1 holds ICON System Software 4.10.01. All 425 installed files are byte-identical to icon-emu's install. It also has the five System SW install scripts (`QNX_1`–`QNX_5`), `package` and `convert_4.02` in its root (identical to the copies on the System SW diskettes), and no `/config/net.config`, `/tmp` or `/user_cmds`. Every file is dated 1980, so it was installed with the clock unset and never configured as a network fileserver.
 
 - Sectors on a floppy image are stored in **cylinder → head → sector** order, and block *n* = sector index *n−1*. The ROM's mapping is `cyl=(n−1)/(2·spt)`, `head=((n−1)/spt)%2`, `sec=(n−1)%spt+1`. Sector stagger (2 or 3) only matters for flux images. KryoFlux decoders already give logical order.
-- For **hard disk images**, apply the Bad Block Table's remapping before reading, or the remapped blocks will come back as garbage. The format is undocumented, so reverse-engineer it from a real image. The `bad_blocks` text file (one hex block number per line) is a helper.
+- For **hard disk images**, apply the Bad Block Table's remapping (entry format above) before reading, or the remapped blocks will come back as garbage. Entries with bad block 0 are unused. The `bad_blocks` text file (one hex block number per line) is a helper.
 
 ## 9. Non-filesystem formats you may meet on ICON floppies
 
