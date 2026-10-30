@@ -91,6 +91,10 @@ The ROM itself boots in the order **floppy → network → hard disk**. The 4.x 
 
 **The node ID therefore lives in the EEPROM, not in the EPROMs.** This settles the [JE2]-versus-book disagreement in favour of the book. It also explains the installation guides' behaviour: new stations come up as node 254, and `attach_net n=… c=…` sets the node and boot server permanently, because it writes NVRAM word 10.
 
+### Real NVRAM images
+
+Two images were read from a real 1 MB ICON's NMC9306 with a chip programmer (2025), with a bit-by-bit bench test of each word. The files store each word **low byte first**. Decoded, they confirm the full word map in re_notes/nvram_rtc_disk_install.md §1.3: boot order, memory, options, node and server, boot-file type, monitor and the serial-number packing. As delivered, the board was a factory workstation: node 254, network boot only. Later it was set up as the network fileserver, node 1. On that 1 MB machine, w0 bit 10 clear gives **Diag error 50** ("One megabyte upgrade RAM card failure"). The files are in `firmware/ICON1/NVRAM/`; the findings are in re_notes/nvram_rtc_disk_install.md §1.5 (c). icon-emu reads and writes these files (`icon-cli nvram`, the web page's NVRAM panel).
+
 ## 6. The network boot protocol (confirmed structure; field meanings partly inferred)
 
 The loader is compiled C. It runs as follows.

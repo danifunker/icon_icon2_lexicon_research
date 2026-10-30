@@ -1,0 +1,361 @@
+This is trying to map out the NM9306 16 x 16bit SRAM chip on the Icon
+
+Original Values
+        9306
+        Chip
+        Addr  Value
+Reg 0 = 0x0000 7D06
+Reg 1 = 0x0002 7777 
+Reg 2 = 0x0004 6333 
+Reg 3 = 0x0006 5803 
+Reg 4 = 0x0008 BC0C 
+Reg 5 = 0x000A 3828 
+Reg 6 = 0x000C 2D44 
+Reg 7 = 0x000E 4104 
+Reg 8 = 0x0010 3C3C 
+Reg 9 = 0x0012 0003 
+Reg A = 0x0014 0101 
+Reg B = 0x0016 F0F0 
+Reg C = 0x0018 0101 
+Reg D = 0x001A FAEB 
+Reg E = 0x001C FFFF 
+Reg F = 0x001E FFFF
+
+
+Reg 0 0x0000 7D06
+
+Base Bit setting =  01111101 00000110 - Attempt boot from Network, then Hard disk
+01 0x8000 0 set to 1 = "keyboard = no" or keyboard = "yes"
+02 0x4000 1 set to 0 = no change
+03 0x2000 1 set to 0 = no change 
+04 0x1000 1 set to 0 = Diag error: 2b Baud rate counter A failure 
+05 0x800  1 set to 0 = Diag error: FDC1797 missing or defective drive
+06 0x400  1 set to 0 = Accessed floppy drive on boot.  Did it only once!   Did spin up while booting from hard drive. More messages on boot up.
+07 0x200  0 set to 1 = Starts loading from hard drive but never finishes. Hung on Diag screen
+08 0x100  1 set to 0 = Starts loading from hard drive but never finishes. Hung on Diag screen
+09 0x80   0 set to 1 = no change
+10 0x40   0 set to 1 = Attempt to boot from Network, then ROM then fail
+11 0x20   1 set to 0 = Attempt floppy boot, (disk failed), Network boot, Hard disk boot
+11a = Note: Base bit setting + 6 = 0 + 11 = 0 and Floppy disk boots up.  Will also boot HD if no floppy.
+
+NEW Base Bit setting 7906 01111001 00000110
+
+12 0x10   0 set to 1 = No Network load option
+13 0x8    0 set to 1 = Screen got bright text and hung on Diag screen when booting from HD
+14 0x4    1 set to 0 = Diag error 50: One megabyte upgrade RAM card failure.  Card installed. Cannot go further
+15 0x2    1 set to 0 = no change
+16 0x1    0 set to 1 = no change
+
+NEW Base Bit setting 7916 01111001 00010110 Floppy boot, HD boot (no network boot)
+
+Reg 1 = 0x0002 7777 (Changes Hardware serial number in nv_config)
+Base Bit setting =  01110111 01110111  
+17 0x8000 0 set to 1 = hw 707-950712-867
+18 0x4000 1 set to 0 = hw 707-830712-867
+19 0x2000 1 set to 0 = hw 707-850712-867
+20 0x1000 1 set to 0 = hw 707-860712-867 
+21 0x800  0 set to 1 = hw 707-871512-867
+22 0x400  1 set to 0 = hw 707-870312-867
+23 0x200  1 set to 0 = hw 307-870512-867
+24 0x100  1 set to 0 = hw 707-870612-867
+25 0x80   0 set to 1 = hw 715-870712-867
+26 0x40   1 set to 0 = hw 703-870712-867
+27 0x20   1 set to 0 = hw 705-870712-867
+28 0x10   1 set to 0 = hw 706-870712-867
+29 0x8    0 set to 1 = hw 1507-870712-867
+30 0x4    1 set to 0 = hw 307-870712-867
+31 0x2    1 set to 0 = hw 507-870712-867
+32 0x1    1 set to 0 = hw 607-870712-867
+
+Reg 2 = 0x0004 6333 (Changes Hardware serial number in nv_config)
+Base Bit setting = 0110 0011 0011 0011
+33 0x8000 0 set to 1 = hw 707-870712-995
+34 0x4000 1 set to 0 = hw serial change
+35 0x2000 1 set to 0 = hw 707-870712-835
+36 0x1000 0 set to 1 = hw 707-870712-883 
+37 0x800  0 set to 1 = hw 707-870712-875
+38 0x400  0 set to 1 = hw 707-870712-871
+39 0x200  1 set to 0 = hw 707-870712-865
+40 0x100  1 set to 0 = hw 707-870712-866
+41 0x80   0 set to 1 = hw 707-870712-867
+42 0x40   0 set to 1 = hw 707-870728-867
+43 0x20   1 set to 0 = hw 707-870704-867
+44 0x10   1 set to 0 = hw 707-870708-867
+45 0x8    0 set to 1 = hw 707-870714-867
+46 0x4    0 set to 1 = hw 707-870713-867
+47 0x2    1 set to 0 = hw 707-870712-355
+48 0x1    1 set to 0 = hw 707-870712-611
+
+Reg 3 = 0x0006 5803 (Changes Software serial number in nv_config)
+Base Bit setting = 0101 1000 0000 0011 
+49 0x8000 0 set to 1 = sw 300-930803-188
+50 0x4000 1 set to 0 = sw 300-810803-188
+51 0x2000 0 set to 1 = "
+52 0x1000 1 set to 0 = " 
+53 0x800  1 set to 0 = "
+54 0x400  0 set to 1 = "
+55 0x200  0 set to 1 = "
+56 0x100  0 set to 1 = sw 300-850903-188
+57 0x80   0 set to 1 = sw 308-850803-188
+58 0x40   0 set to 1 = "
+59 0x20   0 set to 1 = "
+60 0x10   0 set to 1 = "
+61 0x8    0 set to 1 = "
+62 0x4    0 set to 1 = "
+63 0x2    1 set to 0 = "
+64 0x1    1 set to 0 = sw 200-850803-188
+
+Reg 4 = 0x0008 BC0C (Changes Software serial number in nv_config)
+Base Bit setting = 1011 1100 0000 1100 
+65 0x8000 1 set to 0 = sw 300-850803-060
+66 0x4000 0 set to 1 = "
+67 0x2000 1 set to 0 = "
+68 0x1000 1 set to 0 = " 
+69 0x800  1 set to 0 = "
+70 0x400  1 set to 0 = "
+71 0x200  0 set to 1 = "
+72 0x100  0 set to 1 = sw 300-850803-189
+73 0x80   0 set to 1 = sw 300-850803-188
+74 0x40   0 set to 1 = "
+75 0x20   0 set to 1 = "
+76 0x10   0 set to 1 = "
+77 0x8    1 set to 0 = "
+78 0x4    1 set to 0 = "
+79 0x2    0 set to 1 = "
+80 0x1    0 set to 1 = sw 300-850803-444
+
+Reg 5 = 0x000A 3828 (Video timing)
+Base Bit setting = 0011 1000 0010 1000 
+81 0x8000 0 set to 1 = video was scrambled (horizontal timing?)
+82 0x4000 0 set to 1 = not tested
+83 0x2000 1 set to 0 = not tested
+84 0x1000 1 set to 0 = not tested 
+85 0x800  1 set to 0 = not tested
+86 0x400  0 set to 1 = not tested
+87 0x200  0 set to 1 = not tested
+88 0x100  0 set to 1 = not tested
+89 0x80   0 set to 1 = not tested
+90 0x40   0 set to 1 = not tested
+91 0x20   1 set to 0 = not tested
+92 0x10   0 set to 1 = not tested
+93 0x8    1 set to 0 = not tested
+94 0x4    0 set to 1 = not tested
+95 0x2    0 set to 1 = not tested
+96 0x1    0 set to 1 = not tested
+
+Reg 6 = 0x000C 2D44 (Video timing)
+Base Bit setting = 0010 1101 0100 0100 
+97 0x8000 0 set to 1 = video timing (vertical?)
+98 0x4000 0 set to 1 = not tested
+99 0x2000 1 set to 0 = not tested
+100 0x1000 0 set to 1 = not tested
+101 0x800  1 set to 0 = not tested
+102 0x400  1 set to 0 = not tested
+103 0x200  0 set to 1 = not tested
+104 0x100  1 set to 0 = not tested
+105 0x80   0 set to 1 = not tested
+106 0x40   1 set to 0 = not tested
+107 0x20   0 set to 1 = not tested
+108 0x10   0 set to 1 = not tested
+109 0x8    0 set to 1 = not tested
+110 0x4    1 set to 0 = not tested
+111 0x2    0 set to 1 = not tested
+112 0x1    0 set to 1 = not tested
+
+Reg 7 = 0x000E 4104 (Video timing)
+Base Bit setting = 0100 0001 0000 0001 
+113 0x8000 0 set to 1 = no change
+114 0x4000 1 set to 0 = screen sync issues
+115 0x2000 0 set to 1 = not tested
+116 0x1000 0 set to 1 = not tested 
+117 0x800  0 set to 1 = not tested
+118 0x400  0 set to 1 = not tested
+119 0x200  0 set to 1 = not tested
+120 0x100  1 set to 0 = not tested
+121 0x80   0 set to 1 = not tested
+122 0x40   0 set to 1 = not tested
+123 0x20   0 set to 1 = not tested
+124 0x10   0 set to 1 = not tested
+125 0x8    0 set to 1 = not tested
+126 0x4    0 set to 1 = not tested
+127 0x2    0 set to 1 = not tested
+128 0x1    1 set to 0 = no change
+
+Reg 8 = 0x0010 3C3C (Video timing)
+Base Bit setting = 0011 1100 0011 1100 
+129 0x8000 0 set to 1 = no change
+130 0x4000 0 set to 1 = screen taller
+131 0x2000 1 set to 0 = not tested
+132 0x1000 1 set to 0 = not tested 
+133 0x800  1 set to 0 = not tested
+134 0x400  1 set to 0 = not tested
+135 0x200  0 set to 1 = not tested
+136 0x100  0 set to 1 = not tested
+137 0x80   0 set to 1 = no change
+138 0x40   0 set to 1 = not tested
+139 0x20   1 set to 0 = not tested
+140 0x10   1 set to 0 = not tested
+141 0x8    1 set to 0 = not tested
+142 0x4    1 set to 0 = not tested
+143 0x2    0 set to 1 = not tested
+144 0x1    0 set to 1 = not tested
+
+Reg 9 = 0x0012 0003 (Video timing)
+Base Bit setting = 0000 0000 0000 0011 
+145 0x8000 0 set to  1 = no change
+146 0x4000 0 set to  1 = not tested
+147 0x2000 0 set to  1 = not tested
+148 0x1000 0 set to  1 = not tested
+149 0x800  0 set to  1 = not tested
+150 0x400  0 set to  1 = not tested
+151 0x200  0 set to  1 = not tested
+152 0x100  0 set to  1 = refresh rate change
+153 0x80   0 set to  1 = no change
+154 0x40   0 set to  1 = not tested
+155 0x20   0 set to  1 = not tested
+156 0x10   0 set to  1 = not tested
+157 0x8    0 set to  1 = not tested
+158 0x4    0 set to  1 = not tested
+159 0x2    1 set to  0 = not tested
+160 0x1    1 set to  0 = vertical scroll
+
+
+Reg A = 0x0014 0101 (Networking, Server type. Normally "Network Fileserver", "ID 1")
+Base Bit setting = 0000 0001 0000 0001 
+161 0x8000 0 set to 1 = Secondary file server, cluster id 129, commands not found and won't boot
+162 0x4000 0 set to 1 = Secondary file server, cluster id 65, commands not found and won't boot
+163 0x2000 0 set to 1 = not tested
+164 0x1000 0 set to 1 = not tested
+165 0x800  0 set to 1 = not tested
+166 0x400  0 set to 1 = not tested
+167 0x200  0 set to 1 = Secondary file server, cluster id 3, commands not found and won't boot
+168 0x100  1 set to 0 = Secondary file server, cluster id 0 (says ICON Fileserver in nv_config)
+169 0x80   0 set to 1 = Secondary file server, cluster id 1, commands not found and won't boot
+170 0x40   0 set to 1 = Secondary file server, cluster id 1, commands not found and won't boot
+171 0x20   0 set to 1 = Secondary file server, cluster id 1, commands not found and won't boot
+172 0x10   0 set to 1 = not tested
+173 0x8    0 set to 1 = not tested
+174 0x4    0 set to 1 = not tested
+175 0x2    0 set to 1 = not tested
+176 0x1    1 set to 0 = "Invalid node number (0)" error, hangs
+
+Reg B = 0x0016 F0F0 (text attributes)
+Base Bit setting = 1111 0000 1111 0000
+177 0x8000 1 set to 0 = a little darker white text, black background?
+178 0x4000 1 set to 0 = yellowish outlined white text, black background
+179 0x2000 1 set to 0 = magentaish outlined white text, black background 
+180 0x1000 1 set to 0 = teal blue outlined white text, black background
+181 0x800  0 set to 1 = white text, black background
+182 0x400  0 set to 1 = white text, blue backbround
+183 0x200  0 set to 1 = white text, green background
+184 0x100  0 set to 1 = white text, red background
+185 0x80   1 set to 0 = grey solid text,black background
+186 0x40   1 set to 0 = yellow solid text, black background
+187 0x20   1 set to 0 = white outlined magenta text, black background
+188 0x10   1 set to 0 = white outlined teal blue text, black background 
+189 0x8    0 set to 1 = normal white text, black background
+190 0x4    0 set to 1 = normal white text, black background
+191 0x2    0 set to 1 = normal white text, black background
+192 0x1    0 set to 1 = normal white text, black background1
+
+Reg C = 0x0018 0101 (Boot file type)
+Base Bit setting = 0000 0001 0000 0001 
+193 0x8000 0 set to 1 = no change?
+194 0x4000 0 set to 1 = no change
+195 0x2000 0 set to 1 = no change
+196 0x1000 0 set to 1 = no change
+197 0x800  0 set to 1 = nv_config, boot file type is 9
+198 0x400  0 set to 1 = boot file type is 5
+199 0x200  0 set to 1 = boot file type is 3
+200 0x100  1 set to 0 = boot file type os 0
+201 0x80   0 set to 1 = no change, prompt after login slow
+202 0x40   0 set to 1 = no change, prompt after login slow
+203 0x20   0 set to 1 = no change, prompt fast
+204 0x10   0 set to 1 = no change
+205 0x8    0 set to 1 = no change
+206 0x4    0 set to 1 = no change
+207 0x2    0 set to 1 = no change
+208 0x1    1 set to 0 = no change
+
+Reg D = 0x001A FAEB (Monitor type)
+Base Bit setting = 1111 1010 1110 1011 
+209 0x8000 1 set to 0 = no change
+210 0x4000 1 set to 0 = no change
+211 0x2000 1 set to 0 = no change
+212 0x1000 1 set to 0 = no change
+213 0x800  1 set to 0 = nvconfig, unknown monitor
+214 0x400  0 set to 1 = Monitor: ICON monochrome
+215 0x200  1 set to 0 = Monitor: Roland Colour CC-141
+216 0x100  0 set to 1 = no change
+217 0x80   1 set to 0 = no change
+218 0x40   1 set to 0 = no change
+219 0x20   1 set to 0 = no change
+220 0x10   0 set to 1 = no change
+221 0x8    1 set to 0 = no change
+222 0x4    0 set to 1 = no change
+223 0x2    1 set to 0 = no change
+224 0x1    1 set to 0 = no change
+
+Reg E = 0x001C FFFF (Not used?)
+Base Bit setting = 1111 1111 1111 1111
+225 0x8000 1 set to 0 = no change
+226 0x4000 1 set to 0 = not tested
+227 0x2000 1 set to 0 = not tested
+228 0x1000 1 set to 0 = not tested
+229 0x800  1 set to 0 = not tested
+230 0x400  1 set to 0 = not tested
+231 0x200  1 set to 0 = not tested
+232 0x100  1 set to 0 = no change
+233 0x80   1 set to 0 = no change
+234 0x40   1 set to 0 = not tested
+235 0x20   1 set to 0 = not tested
+236 0x10   1 set to 0 = not tested
+237 0x8    1 set to 0 = not tested
+238 0x4    1 set to 0 = not tested
+239 0x2    1 set to 0 = not tested
+240 0x1    1 set to 0 = no change
+
+Reg F = 0x001E FFFF (Not used?)
+Base Bit setting = 1111 1111 1111 1111
+241 0x8000 1 set to 0 = no change
+242 0x4000 1 set to 0 = not tested
+243 0x2000 1 set to 0 = not tested
+244 0x1000 1 set to 0 = not tested
+245 0x800  1 set to 0 = not tested
+246 0x400  1 set to 0 = not tested
+247 0x200  1 set to 0 = not tested
+248 0x100  1 set to 0 = no change
+249 0x80   1 set to 0 = no change
+250 0x40   1 set to 0 = not tested
+251 0x20   1 set to 0 = not tested
+252 0x10   1 set to 0 = not tested
+253 0x8    1 set to 0 = not tested
+254 0x4    1 set to 0 = not tested
+255 0x2    1 set to 0 = not tested
+256 0x1    1 set to 0 = no change
+
+
+From Jeremy:
+
+NMC9306J NVRAM 256bit 16 x 16bit words, bit-banged off 8255A A when PORT B 0x80
+ register 0
+  bits 0x0003 - ram setup size
+  bit 0x0004 - WD1002-5 present - HDD and Floppy controller.  if present, skip FDC1979
+  bit 0x0008 - FDC1979 floppy disk present
+  bit 0x0010 - serial ports present or trackball?
+  bit 0x0040 - other audio?
+   parallel port?
+  bit 0x0080 - keyboard present
+  bit 0x0100 - speech chip
+
+  bits 0xf000 - boot selection - tried in sequence listed below
+
+  bit  0x2000 - floppy loader (two types)
+  bit  0x1000 - network loader
+  bit  0x4000 - hard disk loader
+  bit  0x8000 - ROM loader
+
+ register 0x5 - 0x9 video timings HD46505 reg 0 thru 10 Lo, Hi
+ register 0xa - arcnet related
+ register 0xb - video palette setup
+ register 0xf - firmware R/W test?
