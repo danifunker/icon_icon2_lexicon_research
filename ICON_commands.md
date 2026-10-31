@@ -123,6 +123,15 @@ Printers normally hang off the **LEXICON**, and jobs are spooled there (`/spool/
 | `print file` / `sprint file` | Print a text file to the parallel / serial printer | [100](book_of_icon.md#p100) |
 | `list file` / `slist file` | Print a program listing to the parallel / serial printer | [100](book_of_icon.md#p100) |
 
+**How it works (traced in icon-emu, 2026; details in icon-emu `docs/printer.md`):**
+- **Hardware:** the parallel data is PPI B port B in 8255 mode 1, STROBE is PPI A PC2, and BUSY is PPI B PC6. ACK raises INTR_B (PPI B PC0), which comes in on INT2 and is handled by INT 61h.
+- **Setup:** `attach_printer n=1 d=3 t=fx80` (device 3 = `$plpr`). It needs the fileserver in the hardware database; if it says "Node 1 not found in network", run `verify_net` first.
+- **What `print` sends an FX-80:**
+  - it copies the ROM font to RAM (`ESC :`) and selects it (`ESC %`);
+  - it downloads 13 characters (`ESC &`): lowered capitals A E I O U, circumflex, cedilla and diaeresis pieces, and « » ÷ × ß;
+  - it prints accents by overstriking, accent + BS + letter.
+- **Screen dumps:** `/sys/print_screen` sends `ESC * 4` bit images at 80 dpi, sideways.
+
 `print` options (put them before the file name; `-` turns an option off, `+` turns it on) ([p100–102](book_of_icon.md#p100)):
 
 | Option | Effect |

@@ -82,6 +82,7 @@ Media:
 |---|---|---|
 | Printers (`/config/print/printer_types`, 4.10) | Epson FX-80 · Panasonic KX-P1091 · Unisys AP1314/AP1354 · AP1327/AP1329 · AP9206 (parallel) · Unisys Model 37 (parallel and serial) | Disk |
 | Printer ports | Each fileserver supports one parallel (Centronics) and one serial (RS-232) printer. Workstations need the "printer port option" | Man |
+| Printers schools actually used | One shared 9-pin dot matrix per lab, by the LEXICON, on continuous tractor-feed paper. Named: **Panasonic KX-P1091** (Doug Peterson, teacher). Others say "a standard dot matrix printer" | Web: dougpete, reddit_canada, jasoneckert_lexicon |
 | Serial | `$slpr` RS-232-1 (ICON), `$sec` RS-422 (ICON2), `$mdm` RS-232-2 (sync/async, up to 9600). 8274-class controller on the board | Man, ROM |
 | ICON monitors (`/config/monitor`) | Roland MB-121A mono, Roland CC-141 colour, KIMTRON/ICON colour, amber. CGA-type timing (CRTC values from NVRAM words 5–9) | Man, ROM |
 | Display modes | ICON: 640×240×1, 320×240×2 (4 of 16 colours). ICON2 adds ×2 and ×4 bit-planes with **16 of 4096** colours. 80×24 text | Man |
